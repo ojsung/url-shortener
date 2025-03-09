@@ -22,6 +22,12 @@ services:
     profiles:
       - default
       - build
+    depends_on:
+      - mysql
+    volumes:
+      - ./repositories/api/bin/server.dart:/app/bin/server.dart
+      - ./repositories/api/lib:/app/lib
+      - ./repositories/api/test:/app/test
 
   web:
     build:
@@ -35,4 +41,13 @@ services:
       - build
     volumes:
       - ./repositories/web:/app
-
+  mysql:
+    image: "mysql:8.4.4"
+    ports:
+      - "4003:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: flimsy
+      MYSQL_DATABASE: url_shortener
+    profiles:
+      - default
+      - build
