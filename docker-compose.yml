@@ -5,12 +5,14 @@ services:
       dockerfile: Dockerfile
     image: "docker.io/ojsung93/url-shortener-nginx:latest"
     ports:
-      - "4000:5000"
+      - "${NGINX_EXTERNAL_PORT:-4000}:${NGINX_INTERNAL_PORT:-5000}"
     volumes:
       - ./repositories/nginx/nginx.conf:/etc/nginx/nginx.conf
     profiles:
       - default
       - build
+    environment:
+      - PORT="${NGINX_INTERNAL_PORT:-5000}"
 
   api:
     build:
@@ -18,16 +20,26 @@ services:
       dockerfile: Dockerfile
     image: "docker.io/ojsung93/url-shortener-api:latest"
     ports:
-      - "4001:5000"
+      - "${API_EXTERNAL_PORT:-4001}:${API_INTERNAL_PORT:-5000}"
     profiles:
       - default
       - build
     depends_on:
       - mysql
+      - nginx
     volumes:
       - ./repositories/api/bin/server.dart:/app/bin/server.dart
+      - ./repositories/api/bin/db.dart:/app/bin/db.dart
+      - ./repositories/api/bin/env.dart:/app/bin/env.dart
       - ./repositories/api/lib:/app/lib
       - ./repositories/api/test:/app/test
+    environment:
+      - HOST=${API_HOST:-localhost}
+      - PORT=${API_INTERNAL_PORT:-5000}
+      - MYSQL_PORT=${MYSQL_INTERNAL_PORT:-3306}
+      - MYSQL_PASSWORD=${MYSQL_ROOT_PASSWORD:-flimsy}
+      - MYSQL_DATABASE="${MYSQL_DATABASE:-url_shortener}"
+      - MYSQL_HOST=${MYSQL_HOST:-localhost}
 
   web:
     build:
@@ -35,19 +47,24 @@ services:
       dockerfile: Dockerfile
     image: "docker.io/ojsung93/url-shortener-web:latest"
     ports:
-      - "4002:5000"
+      - "${WEB_EXTERNAL_PORT:-4002}:${WEB_INTERNAL_PORT:-5000}"
     profiles:
       - default
       - build
     volumes:
       - ./repositories/web:/app
+    depends_on:
+      - api
+      - nginx
   mysql:
     image: "mysql:8.4.4"
     ports:
-      - "4003:3306"
+      - "${MYSQL_EXTERNAL_PORT:-4003}:${MYSQL_INTERNAL_PORT:-3306}"
     environment:
-      MYSQL_ROOT_PASSWORD: flimsy
-      MYSQL_DATABASE: url_shortener
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-flimsy}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE:-url_shortener}"
     profiles:
       - default
       - build
+    depends_on:
+      - nginx
