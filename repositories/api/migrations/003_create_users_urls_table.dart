@@ -10,17 +10,17 @@ class CreateUsersUrlsTable implements Migration {
   @override
   Future<Results> up() async {
     return await conn.query('''
-    CREATE TABLE IF NOT EXISTS users_urls (
-      id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-      user_id INT NOT NULL,
-      url_id INT NOT NULL,
-      can_manage_url BOOLEAN DEFAULT FALSE,
-      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-      modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-      deleted_at TIMESTAMP DEFAULT NULL
-      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-      FOREIGN KEY (url_id) REFERENCES urls(id) ON DELETE CASCADE,
-    )
+      CREATE TABLE IF NOT EXISTS users_urls (
+        id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        url_id INT NOT NULL,
+        can_manage_url BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        deleted_at TIMESTAMP DEFAULT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (url_id) REFERENCES urls(id) ON DELETE CASCADE
+      )
   ''');
   }
 

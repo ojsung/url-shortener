@@ -4,6 +4,7 @@ services:
       context: ./repositories/nginx
       dockerfile: Dockerfile
     image: "docker.io/ojsung93/url-shortener-nginx:latest"
+    restart: on-failure:5
     ports:
       - "${NGINX_EXTERNAL_PORT:-4000}:${NGINX_INTERNAL_PORT:-5000}"
     volumes:
@@ -19,8 +20,10 @@ services:
       context: ./repositories/api
       dockerfile: Dockerfile
     image: "docker.io/ojsung93/url-shortener-api:latest"
+    restart: on-failure:5
     ports:
       - "${API_EXTERNAL_PORT:-4001}:${API_INTERNAL_PORT:-5000}"
+      - 8181:8181
     profiles:
       - default
       - build
@@ -36,16 +39,18 @@ services:
     environment:
       - HOST=${API_HOST:-localhost}
       - PORT=${API_INTERNAL_PORT:-5000}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-flimsy}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-url_shortener}
+      - MYSQL_HOST=${MYSQL_HOST:-mysql}
       - MYSQL_PORT=${MYSQL_INTERNAL_PORT:-3306}
-      - MYSQL_PASSWORD=${MYSQL_ROOT_PASSWORD:-flimsy}
-      - MYSQL_DATABASE="${MYSQL_DATABASE:-url_shortener}"
-      - MYSQL_HOST=${MYSQL_HOST:-localhost}
+      - ENV=${ENV:-production}
 
   web:
     build:
       context: ./repositories/web
       dockerfile: Dockerfile
     image: "docker.io/ojsung93/url-shortener-web:latest"
+    restart: on-failure:5
     ports:
       - "${WEB_EXTERNAL_PORT:-4002}:${WEB_INTERNAL_PORT:-5000}"
     profiles:
@@ -58,13 +63,23 @@ services:
       - nginx
   mysql:
     image: "mysql:8.4.4"
+    restart: on-failure:5
+    user: root
     ports:
       - "${MYSQL_EXTERNAL_PORT:-4003}:${MYSQL_INTERNAL_PORT:-3306}"
     environment:
       MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-flimsy}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD:-flimsy}"
       MYSQL_DATABASE: "${MYSQL_DATABASE:-url_shortener}"
+      MYSQL_USER: "${MYSQL_USER:-mysql}"
     profiles:
       - default
       - build
+    expose:
+      - "${MYSQL_INTERNAL_PORT:-3306}"
     depends_on:
       - nginx
+    volumes:
+      - mysql-data:/var/lib/mysql:rw
+volumes:
+  mysql-data:

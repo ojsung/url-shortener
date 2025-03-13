@@ -1,19 +1,14 @@
 import 'dart:io';
+import 'dart:math';
 
+import 'package:mysql1/mysql1.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_router/shelf_router.dart';
+import 'package:url_shortener_server/shared/backoff_retry.dart';
 
 import 'env.dart';
 import 'db.dart';
-
-final env = getEnv();
-final db = Db(
-  host: env.mysqlHost,
-  port: int.parse(env.mysqlPort, radix: 10),
-  password: env.mysqlRootPassword,
-  database: env.mysqlDatabase,
-);
 
 // Configure routes.
 final _router =
@@ -31,6 +26,25 @@ Response _echoHandler(Request request) {
 }
 
 void main(List<String> args) async {
+  final env = getEnv();
+
+  Db db;
+  try {
+    db = Db(
+      host: env.mysqlHost,
+      port: int.parse(env.mysqlPort),
+      password: env.mysqlRootPassword,
+      database: env.mysqlDatabase,
+    );
+    final conn = await db.createConnection();
+    final isRanMigrations = await db.runMigrations(conn);
+    if (!isRanMigrations) {
+      print('Failed to run migrations. This probably isn\'t a problem.');
+    }
+  } catch (e) {
+    print('Failed to create database connection: $e');
+  }
+
   // Use any available host or container IP (usually `0.0.0.0`).
   final ip = InternetAddress.anyIPv4;
 
@@ -39,14 +53,10 @@ void main(List<String> args) async {
       .addMiddleware(logRequests())
       .addHandler(_router.call);
 
-  final conn = await db.createConnection();
-  final isRanMigrations = await db.runMigrations(conn);
-
   // For running in containers, we respect the PORT environment variable.
   final port = int.parse(env.port, radix: 10);
   final server = await serve(handler, ip, port);
-  if (!isRanMigrations) {
-    print('Failed to run migrations. This probably isn\'t a problem.');
-  }
-  print('Server listening on port ${server.port}');
+  print(
+    '${env.env == 'development' ? 'Dev server' : 'server'} listening on port ${server.port}',
+  );
 }
