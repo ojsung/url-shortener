@@ -1,6 +1,7 @@
 #! /bin/bash
 if [ "$ENV" = "development" ]; then
-    dart run /app/bin/server.dart
+    apt-get update && apt-get install -y inotify-tools
+    bash /app/watcher.sh "dart run /app/bin/server.dart"
 else 
     /app/bin/server
 fi

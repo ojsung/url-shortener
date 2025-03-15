@@ -20,7 +20,6 @@ RUN dart compile exe bin/server.dart -o bin/server
 # COPY --from=build /app/bin/server /app/bin/
 COPY --chown=root:root entrypoint.sh watcher.sh ./
 RUN chmod +x /app/entrypoint.sh /app/watcher.sh
-RUN apt-get update && apt-get install -y inotify-tools
 
 # CMD ["/app/bin/server"]
 # CMD ["bash", "/app/entrypoint.sh"]

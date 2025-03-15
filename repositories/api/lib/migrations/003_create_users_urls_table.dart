@@ -1,15 +1,11 @@
-import 'package:mysql1/mysql1.dart';
-import 'package:url_shortener_server/models/migration.dart';
+import 'package:url_shortener_server/shared/interfaces/migration.dart';
 
 class CreateUsersUrlsTable implements Migration {
-  const CreateUsersUrlsTable({required this.conn});
+  const CreateUsersUrlsTable();
 
   @override
-  final MySqlConnection conn;
-
-  @override
-  Future<Results> up() async {
-    return await conn.query('''
+  String up() {
+    return '''
       CREATE TABLE IF NOT EXISTS users_urls (
         id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
@@ -21,11 +17,11 @@ class CreateUsersUrlsTable implements Migration {
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
         FOREIGN KEY (url_id) REFERENCES urls(id) ON DELETE CASCADE
       )
-  ''');
+    ''';
   }
 
   @override
-  Future<Results> down() async {
-    return await conn.query('DROP TABLE IF EXISTS users_urls');
+  String down() {
+    return 'DROP TABLE IF EXISTS users_urls';
   }
 }

@@ -1,57 +1,56 @@
 import 'dart:io';
-import 'dart:math';
 
 import 'package:mysql1/mysql1.dart';
-import 'package:shelf/shelf.dart';
-import 'package:shelf/shelf_io.dart';
-import 'package:shelf_router/shelf_router.dart';
-import 'package:url_shortener_server/shared/backoff_retry.dart';
-
-import 'env.dart';
-import 'db.dart';
-
-// Configure routes.
-final _router =
-    Router()
-      ..get('/', _rootHandler)
-      ..get('/echo/<message>', _echoHandler);
-
-Response _rootHandler(Request req) {
-  return Response.ok('Hello, World!\n');
-}
-
-Response _echoHandler(Request request) {
-  final message = request.params['message'];
-  return Response.ok('$message\n');
-}
+import 'package:shelf/shelf.dart' show Pipeline, logRequests;
+import 'package:shelf/shelf_io.dart' show serve;
+import 'package:shelf_router/shelf_router.dart' show Router;
+import 'package:url_shortener_server/migrations/001_create_users_table.dart';
+import 'package:url_shortener_server/migrations/002_create_urls_table.dart';
+import 'package:url_shortener_server/migrations/003_create_users_urls_table.dart';
+import 'package:url_shortener_server/routes/auth_routes.dart' show AuthRoutes;
+import 'package:url_shortener_server/shared/globals.dart' show getIt;
+import 'package:url_shortener_server/shared/interfaces/migration.dart' show Migration;
+import './injector.dart' as di;
+import 'package:url_shortener_server/shared/env.dart' show Env;
+import 'package:url_shortener_server/services/database_service.dart'
+    show DatabaseService;
 
 void main(List<String> args) async {
-  final env = getEnv();
+  di.setupInjector();
+  final env = getIt.get<Env>();
 
-  Db db;
   try {
-    db = Db(
-      host: env.mysqlHost,
-      port: int.parse(env.mysqlPort),
-      password: env.mysqlRootPassword,
-      database: env.mysqlDatabase,
-    );
-    final conn = await db.createConnection();
-    final isRanMigrations = await db.runMigrations(conn);
-    if (!isRanMigrations) {
-      print('Failed to run migrations. This probably isn\'t a problem.');
+    // Set up the database and run migrations
+    final db = getIt.get<DatabaseService>();
+    // todo: It's fine for this to live here, but if I have time, come back and put it elsewhere
+    final List<Migration> migrations = [
+      CreateUsersTable(),
+      CreateUrlsTable(),
+      CreateUsersUrlsTable(),
+    ];
+    for (final migration in migrations) {
+      final MySqlConnection connection = await db.createConnection();
+      await connection.query(migration.up());
+      db.releaseConnection(connection);
     }
+
+    print('Migrations complete');
   } catch (e) {
     print('Failed to create database connection: $e');
   }
 
-  // Use any available host or container IP (usually `0.0.0.0`).
   final ip = InternetAddress.anyIPv4;
 
+  // Set up the router and routes
+  final Router rootRouter = getIt<Router>();
+
+  final AuthRoutes authRoutes = getIt<AuthRoutes>();
+
+  authRoutes.registerRoutes(rootRouter);
   // Configure a pipeline that logs requests.
   final handler = Pipeline()
       .addMiddleware(logRequests())
-      .addHandler(_router.call);
+      .addHandler(rootRouter.call);
 
   // For running in containers, we respect the PORT environment variable.
   final port = int.parse(env.port, radix: 10);

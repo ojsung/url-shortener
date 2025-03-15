@@ -10,6 +10,6 @@ trap sigint_handler SIGINT
 while true; do
   $@ &
   PID=$!
-  inotifywait -e modify -e move -e create -e delete -e attrib -r /app/
+  inotifywait -e modify -e move -e create -e delete -e attrib -r /
   kill $PID
 done

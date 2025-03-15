@@ -3,7 +3,6 @@ import 'dart:async';
 import 'dart:math';
 
 class BackoffRetry<Return extends FutureOr<dynamic>> {
-  // ignore: unused_field
   static final Finalizer<Timer?> _finalizer = Finalizer(
     (Timer? timer) => timer?.cancel(),
   );

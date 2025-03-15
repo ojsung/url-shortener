@@ -32,18 +32,21 @@ services:
       - nginx
     volumes:
       - ./repositories/api/bin/server.dart:/app/bin/server.dart
-      - ./repositories/api/bin/db.dart:/app/bin/db.dart
-      - ./repositories/api/bin/env.dart:/app/bin/env.dart
+      - ./repositories/api/bin/injector.dart:/app/bin/injector.dart
       - ./repositories/api/lib:/app/lib
       - ./repositories/api/test:/app/test
     environment:
       - HOST=${API_HOST:-localhost}
       - PORT=${API_INTERNAL_PORT:-5000}
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-flimsy}
       - MYSQL_DATABASE=${MYSQL_DATABASE:-url_shortener}
       - MYSQL_HOST=${MYSQL_HOST:-mysql}
       - MYSQL_PORT=${MYSQL_INTERNAL_PORT:-3306}
       - ENV=${ENV:-production}
+      - CREATE_KEY=${CREATE_KEY:-supersecret}
+      - PASSWORD_KEY=${PASSWORD_KEY}
+      - HASH_ROUNDS=${API_HASH_ROUNDS:-5}
+      - MYSQL_USER=${MYSQL_USER:-mysql}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-flimsy}
 
   web:
     build:
