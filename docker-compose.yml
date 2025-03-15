@@ -1,3 +1,7 @@
+networks:
+  url_shortener:
+    driver: bridge
+
 services:
   nginx:
     build:
@@ -14,6 +18,8 @@ services:
       - build
     environment:
       - PORT="${NGINX_INTERNAL_PORT:-5000}"
+    networks:
+      - url_shortener
 
   api:
     build:
@@ -47,6 +53,8 @@ services:
       - HASH_ROUNDS=${API_HASH_ROUNDS:-5}
       - MYSQL_USER=${MYSQL_USER:-mysql}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD:-flimsy}
+    networks:
+      - url_shortener
 
   web:
     build:
@@ -64,6 +72,9 @@ services:
     depends_on:
       - api
       - nginx
+    networks:
+      - url_shortener
+
   mysql:
     image: "mysql:8.4.4"
     restart: on-failure:5
@@ -84,5 +95,9 @@ services:
       - nginx
     volumes:
       - mysql-data:/var/lib/mysql:rw
+    command: --max_connections=1000 --wait_timeout=28800 --interactive_timeout=28800
+    networks:
+      - url_shortener
+
 volumes:
   mysql-data:

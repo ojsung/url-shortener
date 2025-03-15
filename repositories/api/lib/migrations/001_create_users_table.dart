@@ -1,6 +1,3 @@
-import 'package:mysql1/mysql1.dart';
-import 'package:url_shortener_server/services/database_service.dart'
-    show DatabaseService, Querent;
 
 import 'package:url_shortener_server/shared/interfaces/migration.dart';
 

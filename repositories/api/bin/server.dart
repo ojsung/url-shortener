@@ -1,3 +1,4 @@
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:mysql1/mysql1.dart';
@@ -9,7 +10,6 @@ import 'package:url_shortener_server/migrations/002_create_urls_table.dart';
 import 'package:url_shortener_server/migrations/003_create_users_urls_table.dart';
 import 'package:url_shortener_server/routes/auth_routes.dart' show AuthRoutes;
 import 'package:url_shortener_server/shared/globals.dart' show getIt;
-import 'package:url_shortener_server/shared/interfaces/migration.dart' show Migration;
 import './injector.dart' as di;
 import 'package:url_shortener_server/shared/env.dart' show Env;
 import 'package:url_shortener_server/services/database_service.dart'
@@ -18,25 +18,31 @@ import 'package:url_shortener_server/services/database_service.dart'
 void main(List<String> args) async {
   di.setupInjector();
   final env = getIt.get<Env>();
-
+  MySqlConnection? connection;
   try {
-    // Set up the database and run migrations
-    final db = getIt.get<DatabaseService>();
-    // todo: It's fine for this to live here, but if I have time, come back and put it elsewhere
-    final List<Migration> migrations = [
-      CreateUsersTable(),
-      CreateUrlsTable(),
-      CreateUsersUrlsTable(),
-    ];
-    for (final migration in migrations) {
-      final MySqlConnection connection = await db.createConnection();
-      await connection.query(migration.up());
-      db.releaseConnection(connection);
+    print('sending connection request');
+    ConnectionSettings settings = ConnectionSettings(
+      host: env.mysqlHost,
+      port: int.parse(env.mysqlPort),
+      user: env.mysqlUser,
+      password: env.mysqlPassword,
+      db: env.mysqlDatabase,
+    );
+    connection = await MySqlConnection.connect(settings);
+    print('connection established');
+    while (!connection.) {
+      print('waiting for connection');
+      await Future.delayed(Duration(seconds: 1));
     }
-
+    await connection.execute('SHOW TABLES');
+    print('Tables exist');
     print('Migrations complete');
   } catch (e) {
     print('Failed to create database connection: $e');
+  } finally {
+    print('Closing connection');
+    await connection?.close();
+    print('Connection closed');
   }
 
   final ip = InternetAddress.anyIPv4;

@@ -22,8 +22,9 @@ class HashKeys {
 
   String getKey(int minute) {
     String? key = _map[minute];
-    if (key == null)
+    if (key == null) {
       throw ArgumentError('Invalid minute. Must be between 0 and 59');
+    }
     return key;
   }
 

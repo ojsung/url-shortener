@@ -1,6 +1,4 @@
 import 'package:mysql1/mysql1.dart' show MySqlConnection, Results;
-import 'package:url_shortener_server/shared/interfaces/migration.dart'
-    show Migration;
 
 typedef Querent = Future<Results> Function(String sql, [List<Object?>? values]);
 
