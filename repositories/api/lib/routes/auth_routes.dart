@@ -6,7 +6,13 @@ import 'package:url_shortener_server/controllers/auth_controller.dart';
 class AuthRoutes extends RouteRegistry {
   @override
   final AuthController controller;
-  AuthRoutes({required super.namespace, required super.middlewares, required super.validators, required this.controller});
+  AuthRoutes({
+    required super.namespace,
+    required super.exceptionHandlers,
+    required super.middlewares,
+    required super.validators,
+    required this.controller,
+  });
   @override
   Router registerRoutes(Router router) {
     final authRouter =
@@ -14,7 +20,10 @@ class AuthRoutes extends RouteRegistry {
           ..post('/signup', controller.signupPostHandler)
           ..post('/login', controller.loginPostHandler);
 
-    router.mount(namespace, Pipeline().addMiddlewares(validators).addHandler(authRouter.call));
+    router.mount(
+      namespace,
+      Pipeline().addMiddlewares(middlewares).addMiddlewares(validators).addHandler(authRouter.call),
+    );
     return router;
   }
 }

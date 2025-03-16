@@ -8,6 +8,7 @@ class ShortenedUrlRoutes extends RouteRegistry {
   final UrlController controller;
   ShortenedUrlRoutes({
     required super.namespace,
+    required super.exceptionHandlers,
     required super.middlewares,
     required super.validators,
     required this.controller,
@@ -16,10 +17,6 @@ class ShortenedUrlRoutes extends RouteRegistry {
   Router registerRoutes(Router router) {
     final getRouter = Router()..get('/<shortened_url>', controller.getHandler);
 
-    return router
-      ..mount(
-        namespace,
-        Pipeline().addHandler(getRouter.call),
-      );
+    return router..mount(namespace, Pipeline().addMiddlewares(middlewares).addMiddlewares(validators).addHandler(getRouter.call));
   }
 }

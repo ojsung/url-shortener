@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:mysql_client/mysql_client.dart';
 import 'package:url_shortener_server/shared/backoff_retry.dart';
 import 'package:url_shortener_server/services/database_service.dart';
 import 'package:url_shortener_server/shared/interfaces/migration.dart';
+import 'package:url_shortener_server/shared/query_result.dart' show QueryResult, QueryRow;
 
 class DatabaseServiceImpl implements DatabaseService {
   final BackoffRetry<IResultSet> _backoffExecutor = BackoffRetry();
@@ -25,16 +28,15 @@ class DatabaseServiceImpl implements DatabaseService {
        );
 
   @override
-  Future<IResultSet> execute(String query, [List<Object?>? params]) async {
+  Future<QueryResult> execute(String query, [List<Object?>? params]) async {
+    final FutureOr<IResultSet> Function() querent;
     if (params != null) {
-      return await _backoffExecutor.call(() async {
-        PreparedStmt preparedStatement = await _connectionPool.prepare(query);
-        IResultSet results = await preparedStatement.execute(params);
-        await preparedStatement.deallocate();
-        return results;
-      }, 'Prepared Statement');
+      querent = () => _executeWithQueryParams(query, params);
+    } else {
+      querent = () => _connectionPool.execute(query);
     }
-    return await _backoffExecutor(() => _connectionPool.execute(query));
+    final IResultSet results = await _backoffExecutor.call(querent, 'Query Execution');
+    return _resultSetToQueryResult(results);
   }
 
   @override
@@ -77,5 +79,22 @@ class DatabaseServiceImpl implements DatabaseService {
       print('Failed on migration $counter/$migrationLength: $e');
       return false;
     }
+  }
+
+  Future<IResultSet> _executeWithQueryParams(String query, List<Object?> params) async {
+    PreparedStmt preparedStatement = await _connectionPool.prepare(query);
+    IResultSet resultSet = await preparedStatement.execute(params);
+    await preparedStatement.deallocate();
+    return resultSet;
+  }
+
+  QueryResult _resultSetToQueryResult(
+    IResultSet resultSet,
+  ) {
+    return QueryResult(
+      resultSet.rows.map<QueryRow>((row) => row.assoc()).toList(),
+      lastInsertId: resultSet.lastInsertID,
+      affectedRows: resultSet.affectedRows,
+    );
   }
 }

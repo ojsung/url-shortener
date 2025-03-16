@@ -8,6 +8,7 @@ class UrlRoutes extends RouteRegistry {
   final UrlController controller;
   UrlRoutes({
     required super.namespace,
+    required super.exceptionHandlers,
     required super.middlewares,
     required super.validators,
     required this.controller,
@@ -18,7 +19,7 @@ class UrlRoutes extends RouteRegistry {
 
     return router..mount(
       namespace,
-      Pipeline().addMiddlewares(validators).addHandler(postRouter.call),
+      Pipeline().addMiddlewares(middlewares).addMiddlewares(validators).addHandler(postRouter.call),
     );
   }
 }

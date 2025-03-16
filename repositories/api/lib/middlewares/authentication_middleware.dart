@@ -6,8 +6,8 @@ class AuthenticationMiddleware extends MiddlewareLibrary implements CustomMiddle
   AuthenticationMiddleware(this.authService);
 
   @override
-  FutureOr<Response> Function(Request, [String?]) middleware(Handler handler) {
-    return (Request request, [_]) async {
+  FutureOr<Response> Function(Request) middleware(Handler handler) {
+    return (Request request) async {
       final authHeader = request.headers['Authorization'];
       if (authHeader == null || !authHeader.startsWith('Bearer ')) {
         return Response.forbidden('Missing or invalid Authorization header');
