@@ -2,8 +2,8 @@ part of 'validators_library.dart';
 
 class UserValidator extends ValidatorLibrary implements CustomMiddleware {
   @override
-  FutureOr<Response> Function(Request, [String?]) middleware(Handler handler) {
-    return (Request request, [_]) async {
+  FutureOr<Response> Function(Request) middleware(Handler handler) {
+    return (Request request) async {
       final user = PartialUserDto.fromString(await request.readAsString());
       final String? username = user.username;
       final String? password = user.password;

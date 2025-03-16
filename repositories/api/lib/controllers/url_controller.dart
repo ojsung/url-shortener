@@ -9,39 +9,28 @@ class UrlController extends Controller {
   Future<Response> postHandler(Request request) async {
     Object? urlString = request.context['longUrl'];
     if ((urlString is String)) {
-      try {
-        final url = await Url.create(UrlPartial(url: urlString));
-        return Response(201, body: url.toJsonString());
-      } catch (e) {
-        print('Unexpected failure to create url: $e');
-        return Response.internalServerError(body: withError('Failed to create url'));
-      }
+      // Error handling is handled in our error handler middleware. This looks scary, but isn't
+      final url = await Url.create(UrlPartial(url: urlString));
+      return Response(201, body: url.toJsonString());
     }
-    return Response.badRequest(body: withError('Failed to parse url'));
+    return Response.badRequest(body: withErrorMessage('Failed to parse url'));
   }
 
   /// Guests may also retrieve any shortened url. From my experience, any bit.ly link can be used by anyone?
   /// As long as they have the link? So I don't think we should enforce auth here
   Future<Response> getHandler(Request request, String? shortenedUrl) async {
-    if (shortenedUrl != null && _isValidShortenedUrl(shortenedUrl)) {
+    if (shortenedUrl != null) {
       try {
         final List<Url> urlList = await Url.read(UrlPartial(shortenedUrl: shortenedUrl));
         final Url? url = urlList.firstOrNull;
         if (url == null) {
-          return Response.notFound(withError('Corresponding url was not found'));
+          return Response.notFound(withErrorMessage('Corresponding url was not found'));
         }
         return Response(302, headers: {'location': url.url});
       } catch (e) {
-        return Response.internalServerError(body: withError('Url was unable to be retrieved'));
+        return Response.internalServerError(body: withErrorMessage('Url was unable to be retrieved'));
       }
     }
-    return Response.internalServerError(body: withError('Unable to get url'));
-  }
-
-  bool _isValidShortenedUrl(String url) {
-    print(url);
-    // up to 8 alphanumeric characters
-    final regex = RegExp(r'^[a-zA-Z0-9]{1,8}$');
-    return regex.hasMatch(url.trim());
+    return Response.internalServerError(body: withErrorMessage('Unable to get url'));
   }
 }

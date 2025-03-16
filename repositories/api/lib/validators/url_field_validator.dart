@@ -1,9 +1,9 @@
 part of 'validators_library.dart';
 
-class UrlValidator extends ValidatorLibrary implements CustomMiddleware {
+class UrlFieldValidator extends ValidatorLibrary implements CustomMiddleware {
   @override
-  FutureOr<Response> Function(Request, [String?]) middleware(Handler handler) {
-    return (Request request, [_]) async {
+  FutureOr<Response> Function(Request) middleware(Handler handler) {
+    return (Request request) async {
       final PartialUrlDto urlDto = PartialUrlDto.fromString(await request.readAsString());
       final String? url = urlDto.longUrl;
       if (url == null || url.isEmpty) {

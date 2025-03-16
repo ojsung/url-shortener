@@ -4,6 +4,10 @@ String withMessage(String message, [Map<String, dynamic>? fields]) {
   return json.encode({'message': message, ...(fields ?? {})});
 }
 
-String withError(String errorMessage, [Map<String, dynamic>? fields]) {
-  return json.encode({'message': errorMessage, ...(fields ?? {})});
+String withErrorMessage(String errorMessage, [Map<String, dynamic>? fields]) {
+  return json.encode({'error': errorMessage, ...(fields ?? {})});
+}
+
+String withError(Exception error, [Map<String, dynamic>? fields]) {
+  return json.encode({'error': error.toString(), ...(fields ?? {})});
 }
