@@ -1,4 +1,9 @@
-// t = b^c, and allow c to decrease every k*b^(c+1) seconds, with a maximum of 10 retries.
+/*
+Let x, p, and k be elements of the Whole numbers, and t an element of the Reals.
+Then, we define our default backoff strategy as t_retry = x^p, with p increasing on every retry.
+We also define our cooldown strategy as t_cooldown = k * x^p, such that on every interval t_cooldown where p did not increase,
+p_new is the greater value of (p_old - 1) and 0
+ */
 import 'dart:async';
 import 'dart:math';
 
@@ -55,11 +60,11 @@ class BackoffRetry<Return extends dynamic> {
     _finalizer.attach(this, cooldown, detach: this);
   }
 
-  int calculateTimeoutByStrategy(int patient) {
+  int calculateTimeoutByStrategy(int subject) {
     return switch (this.strategy) {
       Strategy.constant => base,
-      Strategy.linear => (patient * base).floor(),
-      Strategy.exponential => pow(base, patient).floor(),
+      Strategy.linear => (subject * base).floor(),
+      Strategy.exponential => pow(base, subject).floor(),
     };
   }
 }

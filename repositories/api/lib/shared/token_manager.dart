@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:crypto/crypto.dart';
+import 'package:url_shortener_server/shared/globals.dart' show characters;
 import 'dart:convert';
 
 import 'package:url_shortener_server/shared/multi_part_string.dart';
@@ -8,7 +9,7 @@ import 'package:url_shortener_server/shared/multi_part_string.dart';
 class TokenManager {
   const TokenManager({required this.hashRounds});
   final int hashRounds;
-  static const String _characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  static const String _characters = characters;
 
   /// It doesn't create a truly random string. But it is random enough for a project like this.
   static String generateRandomString(int length) {

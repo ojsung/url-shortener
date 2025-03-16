@@ -14,7 +14,7 @@ class AuthController extends Controller {
   final AuthService authService;
   const AuthController(this.authService);
 
-  Future<Response> postSignupHandler(Request request) async {
+  Future<Response> signupPostHandler(Request request) async {
     final Object? user = request.context['user'];
     if (user is UserDto) {
       MultiPartString hashedPassword = authService.hashPassword(user.password);
@@ -25,19 +25,19 @@ class AuthController extends Controller {
         // Success
         return Response(
           201,
-          body: json.encode({'message': 'User created successfully', 'userId': createdUsers.lastInsertId.toInt()}),
+          body: withMessage('User created successfully', {'userId': createdUsers.lastInsertId.toInt()}),
         );
       } catch (e) {
-        // Failed with error
+        // Failed with error. I'm interested to see what errors get caught here
         // Someday, I'll have a real logger. But for now, we will print
         print(e);
-        return Response.internalServerError(body: json.encode({'message': 'Error creating user'}));
+        return Response.internalServerError(body: withError('Error creating user'));
       }
     }
-    return Response.badRequest(body: json.encode({'message': 'Invalid user data'}));
+    return Response.badRequest(body: withError('Invalid user data'));
   }
 
-  Future<Response> postLoginHandler(Request request) async {
+  Future<Response> loginPostHandler(Request request) async {
     final Object? requestUser = request.context['user'];
     if (requestUser is UserDto) {
       final UserPartial userToLogin = UserPartial(username: requestUser.username);
@@ -52,17 +52,17 @@ class AuthController extends Controller {
               json.encode({'message': 'Login successful', 'token': authService.generateAuthToken(user.username)}),
             );
           } else {
-            return Response.forbidden(json.encode({'message': 'Invalid username or password'}));
+            return Response.forbidden(withError('Invalid username or password'));
           }
         } else {
-          return Response.forbidden(json.encode({'message': 'Invalid username or password'}));
+          return Response.forbidden(withError('Invalid username or password'));
         }
       } catch (e) {
         print('User experienced a login error: $e');
-        return Response.internalServerError(body: json.encode({'message': 'Error logging in'}));
+        return Response.internalServerError(body: withError('Error logging in'));
       }
     } else {
-      return Response.badRequest(body: json.encode({'message': 'Invalid user data'}));
+      return Response.badRequest(body: withError('Invalid user data'));
     }
   }
 }
