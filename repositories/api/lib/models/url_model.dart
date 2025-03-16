@@ -2,6 +2,7 @@ import 'dart:convert' show json;
 
 import 'package:mysql_client/mysql_client.dart';
 import 'package:url_shortener_server/models/url_partial.dart' show UrlPartial;
+import 'package:url_shortener_server/shared/globals.dart' show characters;
 import 'package:url_shortener_server/shared/interfaces/model.dart';
 import 'package:url_shortener_server/shared/where_clause.dart';
 
@@ -32,17 +33,14 @@ class Url implements Model<Url, UrlPartial>, UrlPartial {
       shortenedUrl = json['shortened_url'],
       createdAt = DateTime.parse(json['created_at']),
       modifiedAt = DateTime.parse(json['modified_at']),
-      deletedAt =
-          json['deleted_at'] != null
-              ? DateTime.parse(json['deleted_at'])
-              : null;
+      deletedAt = json['deleted_at'] != null ? DateTime.parse(json['deleted_at']) : null;
   Url.fromRow(ResultSetRow row)
-    : id = row.typedColAt<int>(0) as int,
-      url = row.typedColAt<String>(1) as String,
-      shortenedUrl = row.typedColAt<String>(2) as String,
-      createdAt = row.typedColAt<DateTime>(3) as DateTime,
-      modifiedAt = row.typedColAt<DateTime>(4) as DateTime,
-      deletedAt = row.typedColAt<DateTime>(5);
+    : id = int.parse(row.colAt(0) as String),
+      url = row.colAt(1) as String,
+      shortenedUrl = row.colAt(2) as String,
+      createdAt = DateTime.parse(row.colAt(3) as String),
+      modifiedAt = DateTime.parse(row.colAt(4) as String),
+      deletedAt = row.colAt(5) == null ? null : DateTime.parse(row.colAt(5) as String);
 
   @override
   Url copyWithJson(Map<String, dynamic> changes) {
@@ -73,41 +71,58 @@ class Url implements Model<Url, UrlPartial>, UrlPartial {
     return UrlPartial(id: id, url: url, shortenedUrl: shortenedUrl);
   }
 
-  static Future<List<Url>> create(UrlPartial model) async {
+  static Future<Url> create(UrlPartial model) async {
     final url = model.url;
-    final shortenedUrl = model.shortenedUrl;
     if (url == null) {
       throw Exception('URL is required to create a Url');
     }
-    if (shortenedUrl == null) {
-      throw Exception('Shortened URL is required to create a Url');
-    }
+    final Url? latestUrl = await findLatest();
+    final int latestId = latestUrl?.id ?? 0;
+    final String nextUrl = _base10ToBase62(latestId + 1, characters);
     IResultSet query = await Model.databaseService.execute(
       '''
-      INSERT INTO urls (url, shortened_url)
+      INSERT INTO `urls` (`url`, `shortened_url`)
       VALUES (?, ?)
     ''',
-      [url, shortenedUrl],
+      [url, nextUrl],
     );
-    return query.rows.map(Url.fromRow).toList();
+    final BigInt lastInsertId = query.lastInsertID;
+    return (await read(UrlPartial(id: lastInsertId.toInt()))).first;
   }
 
   static Future<List<Url>> read(UrlPartial model) async {
     final WhereClause whereClause = _buildWhereClause(model);
     IResultSet query = await Model.databaseService.execute('''
-      SELECT * FROM urls
+      SELECT * FROM `urls`
       WHERE ${whereClause.where.join(' AND ')}
     ''', whereClause.values);
     List<Url> results = query.rows.map(Url.fromRow).toList();
     return results;
   }
 
-  static Future<List<Url>> delete(UrlPartial model) async {
+  static Future<List<Url>> delete(UrlPartial model, [hard = false]) async {
     final WhereClause whereClause = _buildWhereClause(model);
-    IResultSet results = await Model.databaseService.execute('''
-      DELETE FROM urls
+    final IResultSet results;
+    final int? modelId = model.id;
+    if (modelId == null) {
+      throw Exception('ID must not be null for deletion');
+    }
+    if (hard) {
+      results = await Model.databaseService.execute('''
+      DELETE FROM `urls`
       WHERE ${whereClause.where.join(' AND ')}
     ''', whereClause.values);
+    } else {
+      results = await Model.databaseService.execute(
+        '''
+      UPDATE `urls`
+      SET `deleted` = ?
+      WHERE `id` = ?
+      ''',
+        [DateTime.now(), modelId],
+      );
+    }
+
     return results.rows.map(Url.fromRow).toList();
   }
 
@@ -119,35 +134,42 @@ class Url implements Model<Url, UrlPartial>, UrlPartial {
     if (model.url == null && model.shortenedUrl == null) {
       throw Exception('At least one field is required to update a Url');
     }
-    UrlPartial partial = UrlPartial(
-      url: model.url,
-      shortenedUrl: model.shortenedUrl,
-    );
+    UrlPartial partial = UrlPartial(url: model.url, shortenedUrl: model.shortenedUrl);
     final WhereClause whereClause = _buildWhereClause(partial);
     IResultSet query = await Model.databaseService.execute(
       '''
-      UPDATE urls
+      UPDATE `urls`
       SET ${whereClause.where.join(', ')}
-      WHERE id = ?
+      WHERE `id` = ?
     ''',
       [...whereClause.values, id],
     );
     return query.rows.map(Url.fromRow).toList();
   }
 
+  static Future<Url?> findLatest() async {
+    IResultSet result = await Model.databaseService.execute('''
+SELECT `id` FROM `urls`
+ORDER BY id DESC
+LIMIT 1
+''');
+    Iterable<Url> urlList = result.rows.map(Url.fromRow);
+    return urlList.firstOrNull;
+  }
+
   static WhereClause _buildWhereClause(UrlPartial model) {
     List<String> where = [];
     List<dynamic> values = [];
     if (model.id != null) {
-      where.add('id = ?');
+      where.add('`id` = ?');
       values.add(model.id);
     }
     if (model.url != null) {
-      where.add('url = ?');
+      where.add('`url` = ?');
       values.add(model.url);
     }
     if (model.shortenedUrl != null) {
-      where.add('shortened_url = ?');
+      where.add('`shortened_url` = ?');
       values.add(model.shortenedUrl);
     }
     return WhereClause(where: where, values: values);
@@ -156,5 +178,19 @@ class Url implements Model<Url, UrlPartial>, UrlPartial {
   @override
   String toJsonString() {
     return json.encode({'id': id, 'url': url, 'shortenedUrl': shortenedUrl});
+  }
+
+  /*
+  Wholly unnecessary, but very fun
+  */
+  static String _base10ToBase62(int number, String characters) {
+    if (number == 0) return characters[0];
+
+    String result = '';
+    while (number > 0) {
+      result = characters[number % 62] + result;
+      number = number ~/ 62;
+    }
+    return result;
   }
 }

@@ -11,7 +11,6 @@ class MultiPartString<T extends String> extends DelegatingList<T> {
   }
 
   static MultiPartString<String> fromString(String value) {
-    print('received string: $value');
     final parts = value.split(':');
     return MultiPartString(parts);
   }
