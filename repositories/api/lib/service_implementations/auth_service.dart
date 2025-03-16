@@ -1,7 +1,6 @@
 import 'package:url_shortener_server/models/user_model.dart';
 import 'package:url_shortener_server/models/user_partial.dart' show UserPartial;
-import 'package:url_shortener_server/services/auth_service.dart'
-    show AuthService;
+import 'package:url_shortener_server/services/auth_service.dart' show AuthService;
 import 'package:url_shortener_server/shared/hash_keys.dart';
 import 'package:url_shortener_server/shared/token_manager.dart';
 import 'package:url_shortener_server/shared/multi_part_string.dart';
@@ -17,10 +16,7 @@ class AuthServiceImpl implements AuthService {
     final currentMinute = DateTime.now().minute;
     final key = hashKeys.getKey(currentMinute);
 
-    final MultiPartString saltedPassword = tokenManager.encryptString(
-      username,
-      key: key,
-    );
+    final MultiPartString saltedPassword = tokenManager.encryptString(username, key: key);
     saltedPassword.insert(0, currentMinute.toString());
     return saltedPassword.toString();
   }
@@ -40,9 +36,10 @@ class AuthServiceImpl implements AuthService {
     final User user = users.first;
     final String storedUsername = user.username;
     return tokenManager.isTokenEqualToString(
-      saltedToken.toString(),
-      key,
-      storedUsername,
+      hashedSubject: saltedToken[2],
+      key: key,
+      salt: saltedToken[1],
+      subject: storedUsername,
     );
   }
 
@@ -53,12 +50,22 @@ class AuthServiceImpl implements AuthService {
       return false;
     }
     final User user = users.first;
-    final String hashedPassword = user.password;
-    return verifyPassword(hashedPassword, password);
+    return verifyPassword(user.password, password);
   }
 
   @override
   bool verifyPassword(String hash, String password) {
-    return tokenManager.isTokenEqualToString(hash, createKey, password);
+    MultiPartString saltedPassword = MultiPartString.fromString(hash);
+    return tokenManager.isTokenEqualToString(
+      hashedSubject: saltedPassword[1],
+      key: createKey,
+      salt: saltedPassword[0],
+      subject: password,
+    );
+  }
+
+  @override
+  MultiPartString hashPassword(String password) {
+    return tokenManager.encryptString(password, key: createKey);
   }
 }

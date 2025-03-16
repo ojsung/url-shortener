@@ -1,10 +1,7 @@
 import 'dart:convert' show json;
 
-import 'package:mysql1/mysql1.dart';
+import 'package:mysql_client/mysql_client.dart';
 import 'package:url_shortener_server/models/url_partial.dart' show UrlPartial;
-import 'package:url_shortener_server/services/database_service.dart'
-    show DatabaseService;
-import 'package:url_shortener_server/shared/globals.dart';
 import 'package:url_shortener_server/shared/interfaces/model.dart';
 import 'package:url_shortener_server/shared/where_clause.dart';
 
@@ -39,13 +36,13 @@ class Url implements Model<Url, UrlPartial>, UrlPartial {
           json['deleted_at'] != null
               ? DateTime.parse(json['deleted_at'])
               : null;
-  Url.fromRow(ResultRow row)
-    : id = row[0] as int,
-      url = row[1] as String,
-      shortenedUrl = row[2] as String,
-      createdAt = row[3] as DateTime,
-      modifiedAt = row[4] as DateTime,
-      deletedAt = row[5] as DateTime?;
+  Url.fromRow(ResultSetRow row)
+    : id = row.typedColAt<int>(0) as int,
+      url = row.typedColAt<String>(1) as String,
+      shortenedUrl = row.typedColAt<String>(2) as String,
+      createdAt = row.typedColAt<DateTime>(3) as DateTime,
+      modifiedAt = row.typedColAt<DateTime>(4) as DateTime,
+      deletedAt = row.typedColAt<DateTime>(5);
 
   @override
   Url copyWithJson(Map<String, dynamic> changes) {
@@ -85,39 +82,33 @@ class Url implements Model<Url, UrlPartial>, UrlPartial {
     if (shortenedUrl == null) {
       throw Exception('Shortened URL is required to create a Url');
     }
-    MySqlConnection connection =
-        await getIt<DatabaseService>().createConnection();
-    Results query = await connection.query(
+    IResultSet query = await Model.databaseService.execute(
       '''
       INSERT INTO urls (url, shortened_url)
       VALUES (?, ?)
     ''',
       [url, shortenedUrl],
     );
-    return query.map(Url.fromRow).toList();
+    return query.rows.map(Url.fromRow).toList();
   }
 
   static Future<List<Url>> read(UrlPartial model) async {
     final WhereClause whereClause = _buildWhereClause(model);
-    MySqlConnection connection =
-        await getIt<DatabaseService>().createConnection();
-    Results query = await connection.query('''
+    IResultSet query = await Model.databaseService.execute('''
       SELECT * FROM urls
       WHERE ${whereClause.where.join(' AND ')}
     ''', whereClause.values);
-    List<Url> results = query.map(Url.fromRow).toList();
+    List<Url> results = query.rows.map(Url.fromRow).toList();
     return results;
   }
 
   static Future<List<Url>> delete(UrlPartial model) async {
     final WhereClause whereClause = _buildWhereClause(model);
-    MySqlConnection connection =
-        await getIt<DatabaseService>().createConnection();
-    Results results = await connection.query('''
+    IResultSet results = await Model.databaseService.execute('''
       DELETE FROM urls
       WHERE ${whereClause.where.join(' AND ')}
     ''', whereClause.values);
-    return results.map(Url.fromRow).toList();
+    return results.rows.map(Url.fromRow).toList();
   }
 
   static Future<List<Url>> update(UrlPartial model) async {
@@ -133,9 +124,7 @@ class Url implements Model<Url, UrlPartial>, UrlPartial {
       shortenedUrl: model.shortenedUrl,
     );
     final WhereClause whereClause = _buildWhereClause(partial);
-    MySqlConnection connection =
-        await getIt<DatabaseService>().createConnection();
-    Results query = await connection.query(
+    IResultSet query = await Model.databaseService.execute(
       '''
       UPDATE urls
       SET ${whereClause.where.join(', ')}
@@ -143,7 +132,7 @@ class Url implements Model<Url, UrlPartial>, UrlPartial {
     ''',
       [...whereClause.values, id],
     );
-    return query.map(Url.fromRow).toList();
+    return query.rows.map(Url.fromRow).toList();
   }
 
   static WhereClause _buildWhereClause(UrlPartial model) {
