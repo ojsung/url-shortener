@@ -8,36 +8,27 @@ import 'package:url_shortener_server/shared/multi_part_string.dart';
 class TokenManager {
   const TokenManager({required this.hashRounds});
   final int hashRounds;
-  static const String _characters =
-      'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  static const String _characters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
   /// It doesn't create a truly random string. But it is random enough for a project like this.
   static String generateRandomString(int length) {
     final random = Random();
     return String.fromCharCodes(
-      Iterable.generate(
-        length,
-        (_) => _characters.codeUnitAt(random.nextInt(_characters.length)),
-      ),
+      Iterable.generate(length, (_) => _characters.codeUnitAt(random.nextInt(_characters.length))),
     );
   }
 
-  MultiPartString encryptString(String password, {String? key, int? rounds}) {
+  MultiPartString encryptString(String subject, {String key = '', int? rounds, String? salt}) {
     final hashRounds = rounds ?? this.hashRounds;
-    final String salt;
-    if (key == null) {
-      salt = generateRandomString(60 - password.length);
-    } else if (password.length + key.length >= 60) {
-      salt = key;
-    } else {
-      salt = key + generateRandomString(60 - password.length - key.length);
-    }
-    final encryptedKey = hashWithKey(password + salt, salt, hashRounds);
+    // Todo: Max pass length is validated at 40. Salt will always be at least 20 char
+    salt ??= generateRandomString(60 - subject.length);
+
+    final encryptedKey = hashWithKey(subject + salt, key, hashRounds);
     return MultiPartString([salt, encryptedKey]);
   }
 
-  String removeSalt(String password) {
-    return password.split(':').last;
+  String removeSalt(String hashedSubject) {
+    return hashedSubject.split(':').last;
   }
 
   String hashWithKey(String input, String key, [int? rounds]) {
@@ -58,19 +49,16 @@ class TokenManager {
     return digest.toString();
   }
 
-  bool isTokenEqualToString(
-    String hash,
-    String key,
-    String password, [
+  bool isTokenEqualToString({
+    required String hashedSubject,
+    required String salt,
+    required String key,
+    required String subject,
     int? rounds,
-  ]) {
+  }) {
     int hashRounds = rounds ?? this.hashRounds;
-    final MultiPartString saltedPassword = encryptString(
-      password,
-      key: key,
-      rounds: hashRounds,
-    );
-    final MultiPartString saltedHash = MultiPartString.fromString(hash);
+    final MultiPartString saltedPassword = encryptString(subject, key: key, salt: salt, rounds: hashRounds);
+    final MultiPartString saltedHash = MultiPartString([salt, hashedSubject]);
     return saltedPassword == saltedHash;
   }
 }

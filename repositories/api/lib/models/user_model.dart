@@ -1,10 +1,9 @@
 import 'dart:convert' show json;
 
-import 'package:mysql1/mysql1.dart';
+import 'package:mysql_client/mysql_client.dart';
 import 'package:url_shortener_server/models/user_partial.dart' show UserPartial;
-import 'package:url_shortener_server/services/database_service.dart'
-    show DatabaseService;
-import 'package:url_shortener_server/shared/globals.dart';
+import 'package:url_shortener_server/services/database_service.dart' show DatabaseService;
+import 'package:url_shortener_server/shared/interfaces/insert_result.dart';
 import 'package:url_shortener_server/shared/interfaces/model.dart';
 import 'package:url_shortener_server/shared/where_clause.dart';
 
@@ -35,19 +34,16 @@ class User extends Model<User, UserPartial> implements UserPartial {
       password = json['password'],
       createdAt = DateTime.parse(json['created_at']),
       modifiedAt = DateTime.parse(json['modified_at']),
-      deletedAt =
-          json['deleted_at'] != null
-              ? DateTime.parse(json['deleted_at'])
-              : null;
-  User.fromRow(ResultRow row)
-    : id = row[0] as int,
-      username = row[1] as String,
-      password = row[2] as String,
-      createdAt = row[3] as DateTime,
-      modifiedAt = row[4] as DateTime,
-      deletedAt = row[5] as DateTime?;
+      deletedAt = json['deleted_at'] != null ? DateTime.parse(json['deleted_at']) : null;
+  User.fromRow(ResultSetRow row)
+    : id = int.parse(row.colAt(0) as String),
+      username = row.colAt(1) as String,
+      password = row.colAt(2) as String,
+      createdAt = DateTime.parse(row.colAt(3) as String),
+      modifiedAt = DateTime.parse(row.colAt(4) as String),
+      deletedAt = row.colAt(5) == null ? null : DateTime.parse(row.colAt(5) as String);
 
-  static Future<List<User>> create(UserPartial model) async {
+  static Future<InsertResult> create(UserPartial model) async {
     final username = model.username;
     final password = model.password;
     if (username == null) {
@@ -56,41 +52,33 @@ class User extends Model<User, UserPartial> implements UserPartial {
     if (password == null) {
       throw Exception('Password is required to create a User');
     }
-    MySqlConnection connection =
-        await getIt<DatabaseService>().createConnection();
-    Results query = await connection.query(
+    ResultSetRow? existingUser = await _findFirstbyUsername(username);
+    if (existingUser != null) {
+      throw Exception('A user with that uesrname already exists');
+    }
+    IResultSet results = await Model.databaseService.execute(
       '''
-      INSERT INTO users (username, password)
-      VALUES (?, ?)
-    ''',
+          INSERT INTO users (username, password)
+          VALUES (?, ?)
+        ''',
       [username, password],
     );
 
-    final List<User> createdUsers = query.map(User.fromRow).toList();
-    print('created users: $createdUsers');
-    return createdUsers;
+    final BigInt affectedRows = results.affectedRows;
+    final BigInt lastInsertId = results.lastInsertID;
+    return InsertResult(lastInsertId: lastInsertId, affectedRows: affectedRows);
   }
 
   static Future<List<User>> read(UserPartial model) async {
     final WhereClause whereClause = _buildWhereClause(model);
-    MySqlConnection connection = await Model.databaseService.createConnection();
-    Results query = await connection.query('''
-      SELECT * FROM users
-      WHERE ${whereClause.where.join(' AND ')}
-    ''', whereClause.values);
-    Model.databaseService.releaseConnection(connection);
-    return query.map(User.fromRow).toList();
-  }
-
-  static Future<List<User>> delete(UserPartial model) async {
-    final WhereClause whereClause = _buildWhereClause(model);
-    MySqlConnection connection =
-        await getIt<DatabaseService>().createConnection();
-    Results results = await connection.query('''
-      DELETE FROM users
-      WHERE ${whereClause.where.join(' AND ')}
-    ''', whereClause.values);
-    return results.map(User.fromRow).toList();
+    DatabaseService db = Model.databaseService;
+    IResultSet results = await db.execute('''
+          SELECT * FROM users
+          WHERE ${whereClause.where.join(' AND ')}
+          AND deleted_at IS NULL
+        ''', whereClause.values);
+    Iterable<User> usersFromRows = results.rows.map<User>(User.fromRow);
+    return usersFromRows.toList();
   }
 
   static Future<List<User>> update(UserPartial model) async {
@@ -101,22 +89,42 @@ class User extends Model<User, UserPartial> implements UserPartial {
     if (model.username == null && model.password == null) {
       throw Exception('At least one field is required to update a User');
     }
-    UserPartial partial = UserPartial(
-      username: model.username,
-      password: model.password,
-    );
+    UserPartial partial = UserPartial(username: model.username, password: model.password);
     final WhereClause whereClause = _buildWhereClause(partial);
-    MySqlConnection connection =
-        await getIt<DatabaseService>().createConnection();
-    Results query = await connection.query(
+    DatabaseService db = Model.databaseService;
+    IResultSet results = await db.execute(
       '''
-      UPDATE users
-      SET ${whereClause.where.join(', ')}
-      WHERE id = ?
-    ''',
+          UPDATE users
+          SET ${whereClause.where.join(', ')}
+          WHERE id = ?
+        ''',
       [...whereClause.values, id],
     );
-    return query.map(User.fromRow).toList();
+    Iterable<User> usersFromRows = results.rows.map<User>(User.fromRow);
+    return usersFromRows.toList();
+  }
+
+  static Future<List<User>> delete(UserPartial model, [hard = false]) async {
+    final WhereClause whereClause = _buildWhereClause(model);
+    final DatabaseService db = Model.databaseService;
+    IResultSet results;
+    if (hard) {
+      results = await db.execute('''
+    DELETE FROM users
+    WHERE ${whereClause.where.join(' AND ')}
+''', whereClause.values);
+    } else {
+      results = await db.execute(
+        '''
+          UPDATE users
+          SET deleted_at = ?
+          WHERE ${whereClause.where.join(' AND ')}
+        ''',
+        [DateTime.now(), ...whereClause.values],
+      );
+    }
+    Iterable<User> usersFromRows = results.rows.map<User>(User.fromRow);
+    return usersFromRows.toList();
   }
 
   @override
@@ -174,5 +182,18 @@ class User extends Model<User, UserPartial> implements UserPartial {
       values.add(model.password);
     }
     return WhereClause(where: where, values: values);
+  }
+
+  static Future<ResultSetRow?> _findFirstbyUsername(String username) async {
+    IResultSet result = await Model.databaseService.execute(
+      '''
+      SELECT *
+        FROM `users`
+        WHERE `users`.`username` = ?
+        AND `users`.`deleted_at` IS NULL;
+      ''',
+      [username],
+    );
+    return result.rows.firstOrNull;
   }
 }
