@@ -1,6 +1,6 @@
 ## URL Shortener
 ### Getting started
-- Install (docker)[https://docs.docker.com/compose/install/] on your system
+- Install [docker](https://docs.docker.com/compose/install/) on your system
 - Clone this project from github
 #### Manual setup
 - Create a `.env.local` file in the project directory (there should already be a .env file in the project)
@@ -19,8 +19,8 @@
     - Any actions requiring a logged in user will fail though, because of CORS policy
 ### Resources
 - W3 Schools for most of the regular expressions
-- This was my first time writing a Dockerfile or docker-compose.yml. I used the (Getting Started)[https://docs.docker.com/compose/gettingstarted/] from docker as a reference.
-- The middleware pattern is based on (this thread)[https://codereview.stackexchange.com/questions/274183/authentication-middleware-using-dart-shelf/274219#274219]
+- This was my first time writing a Dockerfile or docker-compose.yml. I used the [Getting Started](https://docs.docker.com/compose/gettingstarted/) from docker as a reference.
+- The middleware pattern is based on [this thread](https://codereview.stackexchange.com/questions/274183/authentication-middleware-using-dart-shelf/274219#274219)
 
 ### Routes
 - Create a shortened url
