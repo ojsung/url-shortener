@@ -6,6 +6,7 @@ import 'package:shelf_router/shelf_router.dart' show Router;
 import 'package:url_shortener_server/routes/auth_routes.dart' show AuthRoutes;
 import 'package:url_shortener_server/routes/shortened_url_routes.dart';
 import 'package:url_shortener_server/routes/url_routes.dart';
+import 'package:url_shortener_server/routes/user_routes.dart';
 import 'package:url_shortener_server/services/database_service.dart';
 import 'package:url_shortener_server/shared/globals.dart' show getIt;
 import './injector.dart' as di;
@@ -30,9 +31,11 @@ void main(List<String> args) async {
   final AuthRoutes authRoutes = getIt<AuthRoutes>();
   final UrlRoutes urlRoutes = getIt<UrlRoutes>();
   final ShortenedUrlRoutes shortenedRoutes = getIt<ShortenedUrlRoutes>();
+  final UserRoutes userRoutes = getIt<UserRoutes>();
   authRoutes.registerRoutes(rootRouter);
   urlRoutes.registerRoutes(rootRouter);
   shortenedRoutes.registerRoutes(rootRouter);
+  userRoutes.registerRoutes(rootRouter);
   // Configure a pipeline that logs requests.
   final handler = Pipeline().addMiddleware(logRequests()).addHandler(rootRouter.call);
 

@@ -2,7 +2,8 @@ import 'dart:convert';
 
 import 'package:url_shortener_server/models/user_model.dart';
 import 'package:url_shortener_server/models/user_partial.dart' show UserPartial;
-import 'package:url_shortener_server/services/auth_service.dart' show AuthService;
+import 'package:url_shortener_server/services/auth_service.dart'
+    show AuthService;
 import 'package:url_shortener_server/shared/hash_keys.dart';
 import 'package:url_shortener_server/shared/token_manager.dart';
 import 'package:url_shortener_server/shared/multi_part_string.dart';
@@ -18,9 +19,15 @@ class AuthServiceImpl implements AuthService {
     final currentMinute = DateTime.now().minute;
     final key = hashKeys.getKey(currentMinute);
 
-    final MultiPartString saltedPassword = tokenManager.encryptString(username, key: key);
+    final MultiPartString saltedPassword = tokenManager.encryptString(
+      username,
+      key: key,
+    );
     saltedPassword.insert(0, currentMinute.toString());
-    final String jsonString = json.encode({'token': saltedPassword.toString(), 'userId': userId});
+    final String jsonString = json.encode({
+      'token': saltedPassword.toString(),
+      'userId': userId,
+    });
     final String authToken = utf8.fuse(base64).encode(jsonString);
     return authToken;
   }
@@ -40,9 +47,9 @@ class AuthServiceImpl implements AuthService {
     final User user = users.first;
     final String storedUsername = user.username;
     return tokenManager.isTokenEqualToString(
-      hashedSubject: saltedToken[2],
+      hashedSubject: saltedToken[1],
       key: key,
-      salt: saltedToken[1],
+      salt: saltedToken[0],
       subject: storedUsername,
     );
   }

@@ -112,7 +112,7 @@ class Url implements Model<Url, UrlPartial>, UrlPartial {
       results = await Model.databaseService.execute(
         '''
       UPDATE `urls`
-      SET `deleted` = ?
+      SET `deleted_at` = ?
       WHERE `id` = ?
       ''',
         [DateTime.now(), modelId],
@@ -175,6 +175,17 @@ class Url implements Model<Url, UrlPartial>, UrlPartial {
   @override
   String toJsonString() {
     return json.encode({'id': id, 'url': url, 'shortenedUrl': shortenedUrl});
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'url': url,
+      'shortenedUrl': shortenedUrl,
+      'createdAt': createdAt.toIso8601String(),
+      'modifiedAt': modifiedAt.toIso8601String(),
+      'deletedAt': deletedAt?.toIso8601String(),
+    };
   }
 
   /*

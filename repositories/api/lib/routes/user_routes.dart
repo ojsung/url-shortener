@@ -1,12 +1,13 @@
 import 'package:shelf/shelf.dart';
 import 'package:shelf_router/shelf_router.dart' show Router;
-import 'package:url_shortener_server/controllers/url_controller.dart' show UrlController;
+import 'package:url_shortener_server/controllers/user_controller.dart';
+import 'package:url_shortener_server/middlewares/middlewares_library.dart';
 import 'package:url_shortener_server/shared/interfaces/route_registry.dart';
-import 'package:url_shortener_server/shared/response_body.dart';
+import 'package:url_shortener_server/validators/validators_library.dart';
 
 class UserRoutes extends RouteRegistry {
   @override
-  final UrlController controller;
+  final UserController controller;
   UserRoutes({
     required super.namespace,
     required super.exceptionHandlers,
@@ -16,15 +17,64 @@ class UserRoutes extends RouteRegistry {
   });
   @override
   Router registerRoutes(Router router) {
-    final router =
-        Router()
-          ..get('/', (request) => Response.ok(withMessage('Welcome back user')))
-          ..get('/urls', (request) => Response.ok(withMessage('Found', {'urls': List.filled(10, 'b')})))
-          ..post('/urls', (request) => Response(201))
-          ..put('/urls', (request) => Response.ok('Done'))
-          ..delete('/urls', (request) => Response.ok('Deleted'))
-          ..get('/urls/<id>', (request, url) => Response.found('Found url: $url'));
-
-    return router..mount(namespace, Pipeline().addMiddlewares(exceptionHandlers).addMiddlewares(middlewares).addMiddlewares(validators).addHandler(router.call));
+    router
+      ..get(
+        '/user',
+        Pipeline()
+            .addMiddlewares(exceptionHandlers)
+            .addMiddlewares(middlewares)
+            .addMiddleware(
+              MiddlewareLibrary.get<AuthenticationMiddleware>().middleware,
+            )
+            .addHandler(controller.getHandler),
+      )
+      ..get('/user/urls', Pipeline()
+            .addMiddlewares(exceptionHandlers)
+            .addMiddlewares(middlewares)
+            .addMiddleware(
+              MiddlewareLibrary.get<AuthenticationMiddleware>().middleware,
+            )
+            .addHandler(controller.urlGetHandler),
+      )
+      ..post(
+        '/user/urls',
+        Pipeline()
+            .addMiddlewares(exceptionHandlers)
+            .addMiddlewares(middlewares)
+            .addMiddleware(
+              MiddlewareLibrary.get<AuthenticationMiddleware>().middleware,
+            )
+            .addMiddleware(ValidatorLibrary.get<UrlFieldValidator>().middleware)
+            .addMiddleware(
+              ValidatorLibrary.get<UrlContentValidator>().middleware,
+            )
+            .addHandler(controller.urlPostHandler),
+      )
+      ..put(
+        '/user/urls',
+        Pipeline()
+            .addMiddlewares(exceptionHandlers)
+            .addMiddlewares(middlewares)
+            .addMiddleware(
+              MiddlewareLibrary.get<AuthenticationMiddleware>().middleware,
+            )
+            .addMiddleware(ValidatorLibrary.get<UrlFieldValidator>().middleware)
+            .addMiddleware(
+              ValidatorLibrary.get<UrlContentValidator>().middleware,
+            )
+            .addHandler(controller.urlPutHandler),
+      )
+      ..delete(
+        '/user/urls',
+        Pipeline()
+            .addMiddlewares(exceptionHandlers)
+            .addMiddlewares(middlewares)
+            .addMiddleware(
+              MiddlewareLibrary.get<AuthenticationMiddleware>().middleware,
+            )
+            .addMiddleware(ValidatorLibrary.get<IdFieldValidator>().middleware)
+            .addHandler(controller.urlDeleteHandler),
+      );
+    return router;
   }
 }

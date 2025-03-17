@@ -38,12 +38,11 @@ class BackoffRetry<Return extends dynamic> {
       if (retries == 0) {
         return await fn();
       }
-      return await Future.delayed(Duration(seconds: retries), () async {
+      return await Future.delayed(Duration(seconds: calculateTimeoutByStrategy(retries)), () async {
         return await fn();
       });
     } catch (_) {
       if (retries >= maxRetries) {
-        cooldown?.cancel();
         rethrow;
       }
     }
