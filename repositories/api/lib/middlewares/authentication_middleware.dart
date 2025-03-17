@@ -1,6 +1,7 @@
 part of 'middlewares_library.dart';
 
-class AuthenticationMiddleware extends MiddlewareLibrary implements CustomMiddleware {
+class AuthenticationMiddleware extends MiddlewareLibrary
+    implements CustomMiddleware {
   final AuthService authService;
 
   AuthenticationMiddleware(this.authService);
@@ -18,16 +19,18 @@ class AuthenticationMiddleware extends MiddlewareLibrary implements CustomMiddle
       final int? userId = jsonToken.userId;
       final String? authToken = jsonToken.token;
       if (userId == null || authToken == null) {
-        throw BrokenAuthorizationHeaderException('Authorization header is missing authorization data');
+        throw BrokenAuthorizationHeaderException(
+          'Authorization header is missing authorization data',
+        );
       }
 
       final isValid = await authService.verifyAuthToken(authToken, userId);
       if (!isValid) {
         throw InvalidAuthorizationHeaderException('The token is invalid');
       }
-      request.change(context: {"userId": userId});
-
-      return handler(request);
+      
+      final Request requestWithUserId = request.change(context: {"userId": userId});
+      return handler(requestWithUserId);
     };
   }
 }

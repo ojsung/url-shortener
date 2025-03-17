@@ -1,50 +1,43 @@
 import 'dart:convert' show json;
 
 import 'package:url_shortener_server/exceptions/exceptions.dart';
-import 'package:url_shortener_server/models/user_partial.dart' show UserPartial;
+import 'package:url_shortener_server/models/url_model.dart';
 import 'package:url_shortener_server/models/user_url_partial.dart';
-import 'package:url_shortener_server/services/database_service.dart' show DatabaseService;
+import 'package:url_shortener_server/services/database_service.dart'
+    show DatabaseService;
 import 'package:url_shortener_server/shared/interfaces/model.dart';
-import 'package:url_shortener_server/shared/interfaces/partial.dart';
 import 'package:url_shortener_server/shared/query_result.dart';
 import 'package:url_shortener_server/shared/where_clause.dart';
 
 class UserUrl extends Model<UserUrl, UserUrlPartial> {
-  static const String tableName = 'users';
+  static const String tableName = 'users_urls';
   final int id;
   final int userId;
   final int urlId;
+  List<Url>? _urls;
 
-  UserUrl({
-    required this.id,
-    required this.userId,
-    required this.urlId,
-  });
+  UserUrl({required this.id, required this.userId, required this.urlId});
 
   UserUrl.fromJson(Map<String, dynamic> json)
     : id = int.parse(json['id']),
       userId = int.parse(json['user_id']),
       urlId = int.parse(json['url_id']);
 
-  static Future<QueryResult> create(UserPartial model) async {
-    final username = model.username;
-    final password = model.password;
-    if (username == null) {
-      throw IncompleteDataException('Username is required to create a User');
+  static Future<QueryResult> create(UserUrlPartial model) async {
+    final userId = model.userId;
+    final urlId = model.urlId;
+    if (userId == null) {
+      throw IncompleteDataException('User ID is required to create a UserUrl');
     }
-    if (password == null) {
-      throw IncompleteDataException('Password is required to create a User');
-    }
-    QueryResult existingUser = await _findFirstbyUsername(username);
-    if (existingUser.isNotEmpty) {
-      throw DuplicateUserException();
+    if (urlId == null) {
+      throw IncompleteDataException('URL ID is required to create a UserUrl');
     }
     QueryResult results = await Model.databaseService.execute(
       '''
-          INSERT INTO users (username, password)
+          INSERT INTO users_urls (user_id, url_id)
           VALUES (?, ?)
         ''',
-      [username, password],
+      [userId, urlId],
     );
 
     if (results.lastInsertId == BigInt.zero) {
@@ -53,135 +46,103 @@ class UserUrl extends Model<UserUrl, UserUrlPartial> {
     return results;
   }
 
-  static Future<List<User>> read(UserPartial model) async {
+  static Future<List<UserUrl>> read(UserUrlPartial model) async {
     final WhereClause whereClause = _buildWhereClause(model);
     DatabaseService db = Model.databaseService;
     QueryResult results = await db.execute('''
-          SELECT * FROM users
+          SELECT * FROM users_urls
           WHERE ${whereClause.where.join(' AND ')}
-          AND deleted_at IS NULL
         ''', whereClause.values);
-    Iterable<User> usersFromRows = results.toModels();
-    return usersFromRows.toList();
+    Iterable<UserUrl> userUrlsFromRows = results.toModels();
+    return userUrlsFromRows.toList();
   }
 
-  static Future<QueryResult> update(UserPartial model) async {
-    final id = model.id;
-    if (id == null) {
-      throw MissingIdException('ID is required to update a User');
-    }
-    if (model.username == null && model.password == null) {
-      throw IncompleteDataException('At least one field is required to update a User');
-    }
-    UserPartial partial = UserPartial(username: model.username, password: model.password);
-    final WhereClause whereClause = _buildWhereClause(partial);
-    DatabaseService db = Model.databaseService;
-    QueryResult results = await db.execute(
-      '''
-          UPDATE users
-          SET ${whereClause.where.join(', ')}
-          WHERE id = ?
-        ''',
-      [...whereClause.values, id],
-    );
-    return results;
-  }
-
-  static Future<QueryResult> delete(UserPartial model, [hard = false]) async {
+  static Future<QueryResult> delete(UserUrlPartial model) async {
     final WhereClause whereClause = _buildWhereClause(model);
     final DatabaseService db = Model.databaseService;
     QueryResult results;
-    if (hard) {
-      results = await db.execute('''
-    DELETE FROM users
+    results = await db.execute('''
+    DELETE FROM users_urls
     WHERE ${whereClause.where.join(' AND ')}
 ''', whereClause.values);
-    } else {
-      results = await db.execute(
-        '''
-          UPDATE users
-          SET deleted_at = ?
-          WHERE ${whereClause.where.join(' AND ')}
-        ''',
-        [DateTime.now(), ...whereClause.values],
-      );
-    }
+
     return results;
+  }
+
+  Future<List<Url>> getUrls([forceRefresh = false]) async {
+    final List<Url>? cachedUrls = _urls;
+    if (!forceRefresh && cachedUrls != null) {
+      return cachedUrls;
+    }
+    final List<Url> urls = await UserUrl.getUrlsByUserId(userId);
+    _urls = urls;
+    return urls;
   }
 
   @override
   String toString() {
-    return 'User(id: $id, username: $username, password: $password, createdAt: $createdAt, modifiedAt: $modifiedAt, deletedAt: $deletedAt)';
+    return 'UserUrl(id: $id, userId: $userId, urlId: $urlId)';
   }
 
   @override
   String toJsonString() {
-    return json.encode({id: id, username: username, password: password});
+    return json.encode({id: id, userId: userId, urlId: urlId});
   }
 
   @override
-  User copyWithJson(Map<String, dynamic> changes) {
-    return User(
+  UserUrl copyWithJson(Map<String, dynamic> changes) {
+    return UserUrl(
       id: changes['id'] ?? id,
-      username: changes['username'] ?? username,
-      password: changes['password'] ?? password,
-      createdAt: changes['createdAt'] ?? createdAt,
-      modifiedAt: changes['modifiedAt'] ?? modifiedAt,
-      deletedAt: changes['deletedAt'] ?? deletedAt,
+      userId: changes['user_id'] ?? userId,
+      urlId: changes['url_id'] ?? urlId,
     );
   }
 
   @override
-  User copyWithPartial(UserPartial partial) {
-    return User(
+  UserUrl copyWithPartial(UserUrlPartial partial) {
+    return UserUrl(
       id: partial.id ?? id,
-      username: partial.username ?? username,
-      password: partial.password ?? password,
-      createdAt: createdAt,
-      modifiedAt: modifiedAt,
-      deletedAt: deletedAt,
+      userId: partial.userId ?? userId,
+      urlId: partial.urlId ?? urlId,
     );
   }
 
-  @override
-  UserPartial toPartial() {
-    return UserPartial(id: id, username: username, password: password);
-  }
-
-  static WhereClause _buildWhereClause(UserPartial model) {
+  static WhereClause _buildWhereClause(UserUrlPartial model) {
     List<String> where = [];
     List<dynamic> values = [];
     if (model.id != null) {
       where.add('id = ?');
       values.add(model.id);
     }
-    if (model.username != null) {
-      where.add('username = ?');
-      values.add(model.username);
+    if (model.userId != null) {
+      where.add('user_id = ?');
+      values.add(model.userId);
     }
-    if (model.password != null) {
-      where.add('password = ?');
-      values.add(model.password);
+    if (model.urlId != null) {
+      where.add('url_id = ?');
+      values.add(model.urlId);
     }
     return WhereClause(where: where, values: values);
   }
 
-  static Future<QueryResult> _findFirstbyUsername(String username) async {
-    QueryResult result = await Model.databaseService.execute(
+  static Future<List<Url>> getUrlsByUserId(int userId) async {
+    DatabaseService db = Model.databaseService;
+    QueryResult results = await db.execute(
       '''
-      SELECT *
-        FROM `users`
-        WHERE `users`.`username` = ?
-        AND `users`.`deleted_at` IS NULL;
-      ''',
-      [username],
+      SELECT urls.* FROM users_urls
+      JOIN urls ON users_urls.url_id = urls.id
+      WHERE users_urls.user_id = ?
+      AND urls.deleted_at IS NULL
+        ''',
+      [userId],
     );
-    return result;
+    final mappedUrls = results.map(Url.fromJson).toList();
+    return mappedUrls;
   }
 }
 
 extension on QueryResult {
-  Iterable<User> toModels() {
-    return map(User.fromJson);
+  Iterable<UserUrl> toModels() {
+    return map(UserUrl.fromJson);
   }
 }

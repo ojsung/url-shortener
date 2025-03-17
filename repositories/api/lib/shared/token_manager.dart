@@ -15,17 +15,25 @@ class TokenManager {
   static String generateRandomString(int length) {
     final random = Random();
     return String.fromCharCodes(
-      Iterable.generate(length, (_) => _characters.codeUnitAt(random.nextInt(_characters.length))),
+      Iterable.generate(
+        length,
+        (_) => _characters.codeUnitAt(random.nextInt(_characters.length)),
+      ),
     );
   }
 
-  MultiPartString encryptString(String subject, {String key = '', int? rounds, String? salt}) {
+  MultiPartString encryptString(
+    String subject, {
+    String key = '',
+    int? rounds,
+    String? salt,
+  }) {
     final hashRounds = rounds ?? this.hashRounds;
     // Todo: Max pass length is validated at 40. Salt will always be at least 20 char
     salt ??= generateRandomString(60 - subject.length);
 
-    final encryptedKey = hashWithKey(subject + salt, key, hashRounds);
-    return MultiPartString([salt, encryptedKey]);
+    final encryptedSubject = hashWithKey(subject + salt, key, hashRounds);
+    return MultiPartString([salt, encryptedSubject]);
   }
 
   String removeSalt(String hashedSubject) {
@@ -58,7 +66,12 @@ class TokenManager {
     int? rounds,
   }) {
     int hashRounds = rounds ?? this.hashRounds;
-    final MultiPartString saltedPassword = encryptString(subject, key: key, salt: salt, rounds: hashRounds);
+    final MultiPartString saltedPassword = encryptString(
+      subject,
+      key: key,
+      salt: salt,
+      rounds: hashRounds,
+    );
     final MultiPartString saltedHash = MultiPartString([salt, hashedSubject]);
     return saltedPassword == saltedHash;
   }

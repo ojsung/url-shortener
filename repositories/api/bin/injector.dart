@@ -1,24 +1,40 @@
 import 'package:shelf_router/shelf_router.dart' show Router;
-import 'package:url_shortener_server/controllers/auth_controller.dart' show AuthController;
+import 'package:url_shortener_server/controllers/auth_controller.dart'
+    show AuthController;
 import 'package:url_shortener_server/controllers/url_controller.dart';
+import 'package:url_shortener_server/controllers/user_controller.dart';
 import 'package:url_shortener_server/middlewares/middlewares_library.dart'
-    show AuthExceptionMiddleware, AuthenticationMiddleware, CorsMiddleware, UrlExceptionMiddleware;
+    show
+        AuthExceptionMiddleware,
+        AuthenticationMiddleware,
+        CorsMiddleware,
+        SetRequestStringMiddleware,
+        UrlExceptionMiddleware;
 import 'package:url_shortener_server/migrations/001_create_users_table.dart';
 import 'package:url_shortener_server/migrations/002_create_urls_table.dart';
 import 'package:url_shortener_server/migrations/003_create_users_urls_table.dart';
 import 'package:url_shortener_server/routes/auth_routes.dart';
 import 'package:url_shortener_server/routes/shortened_url_routes.dart';
 import 'package:url_shortener_server/routes/url_routes.dart';
+import 'package:url_shortener_server/routes/user_routes.dart';
 import 'package:url_shortener_server/service_implementations/auth_service.dart';
-import 'package:url_shortener_server/services/auth_service.dart' show AuthService;
+import 'package:url_shortener_server/services/auth_service.dart'
+    show AuthService;
 import 'package:url_shortener_server/shared/hash_keys.dart';
 import 'package:url_shortener_server/shared/token_manager.dart';
 import 'package:url_shortener_server/shared/globals.dart' show getIt;
-import 'package:url_shortener_server/services/database_service.dart' show DatabaseService;
+import 'package:url_shortener_server/services/database_service.dart'
+    show DatabaseService;
 import 'package:url_shortener_server/service_implementations/database/mysql/database_service.dart';
 import 'package:url_shortener_server/shared/env.dart';
 import 'package:url_shortener_server/validators/validators_library.dart'
-    show ShortenedUrlContentValidator, ShortenedUrlValidator, UrlContentValidator, UrlFieldValidator, UserValidator;
+    show
+        IdFieldValidator,
+        ShortenedUrlContentValidator,
+        ShortenedUrlValidator,
+        UrlContentValidator,
+        UrlFieldValidator,
+        UserValidator;
 
 void setupInjector() {
   getIt
@@ -41,7 +57,11 @@ void setupInjector() {
         user: env.mysqlUser,
         password: env.mysqlPassword,
         database: env.mysqlDatabase,
-        migrations: [getIt.get<CreateUsersTable>(), getIt.get<CreateUrlsTable>(), getIt.get<CreateUsersUrlsTable>()],
+        migrations: [
+          getIt.get<CreateUsersTable>(),
+          getIt.get<CreateUrlsTable>(),
+          getIt.get<CreateUsersUrlsTable>(),
+        ],
       );
     })
     ..registerLazySingleton<TokenManager>(() {
@@ -53,29 +73,53 @@ void setupInjector() {
       dispose: (service) => service.dispose(),
     )
     ..registerLazySingleton<AuthService>(
-      () => AuthServiceImpl(getIt.get<TokenManager>(), getIt.get<HashKeys>(), getIt.get<Env>().createKey),
+      () => AuthServiceImpl(
+        getIt.get<TokenManager>(),
+        getIt.get<HashKeys>(),
+        getIt.get<Env>().createKey,
+      ),
     )
     // Register middlewares
-    ..registerLazySingleton<AuthenticationMiddleware>(() => AuthenticationMiddleware(getIt.get<AuthService>()))
+    ..registerLazySingleton<AuthenticationMiddleware>(
+      () => AuthenticationMiddleware(getIt.get<AuthService>()),
+    )
     ..registerLazySingleton<CorsMiddleware>(() => CorsMiddleware())
-    ..registerLazySingleton<UrlExceptionMiddleware>(() => UrlExceptionMiddleware())
-    ..registerLazySingleton<AuthExceptionMiddleware>(() => AuthExceptionMiddleware())
+    ..registerLazySingleton<UrlExceptionMiddleware>(
+      () => UrlExceptionMiddleware(),
+    )
+    ..registerLazySingleton<AuthExceptionMiddleware>(
+      () => AuthExceptionMiddleware(),
+    )
+    ..registerLazySingleton<SetRequestStringMiddleware>(
+      () => SetRequestStringMiddleware(),
+    )
     // Register validators
     ..registerLazySingleton<UserValidator>(() => UserValidator())
     ..registerLazySingleton<UrlFieldValidator>(() => UrlFieldValidator())
     ..registerLazySingleton<UrlContentValidator>(() => UrlContentValidator())
-    ..registerLazySingleton<ShortenedUrlValidator>(() => ShortenedUrlValidator())
-    ..registerLazySingleton<ShortenedUrlContentValidator>(() => ShortenedUrlContentValidator())
+    ..registerLazySingleton<ShortenedUrlValidator>(
+      () => ShortenedUrlValidator(),
+    )
+    ..registerLazySingleton<ShortenedUrlContentValidator>(
+      () => ShortenedUrlContentValidator(),
+    )
+    ..registerLazySingleton<IdFieldValidator>(() => IdFieldValidator())
     // Register controllers
-    ..registerLazySingleton<AuthController>(() => AuthController(getIt.get<AuthService>()))
+    ..registerLazySingleton<AuthController>(
+      () => AuthController(getIt.get<AuthService>()),
+    )
     ..registerLazySingleton<UrlController>(() => UrlController())
+    ..registerLazySingleton<UserController>(() => UserController())
     // Register routers
     ..registerLazySingleton<Router>(() => Router())
     ..registerLazySingleton<AuthRoutes>(
       () => AuthRoutes(
         namespace: '/auth',
         exceptionHandlers: [getIt.get<AuthExceptionMiddleware>()],
-        middlewares: [getIt.get<CorsMiddleware>()],
+        middlewares: [
+          getIt.get<CorsMiddleware>(),
+          getIt.get<SetRequestStringMiddleware>(),
+        ],
         validators: [getIt.get<UserValidator>()],
         controller: getIt.get<AuthController>(),
       ),
@@ -84,8 +128,14 @@ void setupInjector() {
       () => UrlRoutes(
         namespace: '/shorten',
         exceptionHandlers: [getIt.get<UrlExceptionMiddleware>()],
-        middlewares: [getIt.get<CorsMiddleware>()],
-        validators: [getIt.get<UrlFieldValidator>(), getIt.get<UrlContentValidator>()],
+        middlewares: [
+          getIt.get<CorsMiddleware>(),
+          getIt.get<SetRequestStringMiddleware>(),
+        ],
+        validators: [
+          getIt.get<UrlFieldValidator>(),
+          getIt.get<UrlContentValidator>(),
+        ],
         controller: getIt.get<UrlController>(),
       ),
     )
@@ -94,9 +144,30 @@ void setupInjector() {
         // I know this is a horrible name space but we're trying to shorten a url. gotta make it short
         namespace: '/r',
         exceptionHandlers: [getIt.get<UrlExceptionMiddleware>()],
-        middlewares: [getIt.get<CorsMiddleware>()],
-        validators: [getIt.get<ShortenedUrlValidator>(), getIt.get<ShortenedUrlContentValidator>()],
+        middlewares: [
+          getIt.get<CorsMiddleware>(),
+          getIt.get<SetRequestStringMiddleware>(),
+        ],
+        validators: [
+          getIt.get<ShortenedUrlValidator>(),
+          getIt.get<ShortenedUrlContentValidator>(),
+        ],
         controller: getIt.get<UrlController>(),
+      ),
+    )
+    ..registerLazySingleton<UserRoutes>(
+      () => UserRoutes(
+        namespace: '/user',
+        exceptionHandlers: [
+          getIt.get<AuthExceptionMiddleware>(),
+          getIt.get<UrlExceptionMiddleware>(),
+        ],
+        middlewares: [
+          getIt.get<CorsMiddleware>(),
+          getIt.get<SetRequestStringMiddleware>(),
+        ],
+        validators: [],
+        controller: getIt.get<UserController>(),
       ),
     );
 }
