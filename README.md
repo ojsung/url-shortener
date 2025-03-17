@@ -12,7 +12,7 @@
 ### View the app
 - Use your favorite browser to navigate to http://localhost:4002
   - If your port 4002 is taken, you can change the port in the docker-compose.yml file
-- In the app, all unauthenticated routes are testable. You can
+- In the web app, all unauthenticated routes are testable. Because of CORS policy, authenticated routes can only be hit through cURL (covered in the Routes section). In the web app, you can
   - Create a url that is unassociated with a user
   - Create a user
   - Log in as a user
