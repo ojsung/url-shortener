@@ -1,5 +1,7 @@
 part of 'middlewares_library.dart';
 
+/// Allows Cross-Origin Resource Sharing (CORS) requests
+/// It is not set up to allow authorization headers
 class CorsMiddleware extends MiddlewareLibrary implements CustomMiddleware {
   @override
   FutureOr<Response> Function(Request) middleware(Handler handler) {

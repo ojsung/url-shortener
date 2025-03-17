@@ -1,5 +1,6 @@
 part of 'middlewares_library.dart';
 
+/// A class for authenticating a user using their bearer token
 class AuthenticationMiddleware extends MiddlewareLibrary
     implements CustomMiddleware {
   final AuthService authService;
