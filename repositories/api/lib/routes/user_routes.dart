@@ -59,6 +59,7 @@ class UserRoutes extends RouteRegistry {
               MiddlewareLibrary.get<AuthenticationMiddleware>().middleware,
             )
             .addMiddleware(ValidatorLibrary.get<UrlFieldValidator>().middleware)
+            .addMiddleware(ValidatorLibrary.get<IdFieldValidator>().middleware)
             .addMiddleware(
               ValidatorLibrary.get<UrlContentValidator>().middleware,
             )

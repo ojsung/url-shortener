@@ -1,577 +1,557 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Url Shortener</title>
-  </head>
-  <body>
-    <div class="page-area">
-      <!-- START OF STATE MANAGEMENT -->
-      <input
-        id="log-in-radio"
-        class="dropdown-controller"
-        type="radio"
-        name="header-dropdown"
-      />
-      <input
-        id="sign-up-radio"
-        class="dropdown-controller"
-        type="radio"
-        name="header-dropdown"
-      />
-      <input
-        id="no-header-action-radio"
-        class="dropdown-controller"
-        type="radio"
-        name="header-dropdown"
-        checked
-      />
-      <input type="checkbox" id="is-display-spinner" class="hidden" />
-      <input type="checkbox" id="is-logged-in" class="hidden" />
-      <input
-        type="radio"
-        name="current-page"
-        class="hidden"
-        id="is-show-create-page"
-        checked
-      />
-      <input
-        type="radio"
-        name="current-page"
-        class="hidden"
-        id="is-show-manage-page"
-      />
-      <!-- END OF STATE MANAGEMENT -->
-      <!-- START OF HEADER -->
-      <h1 class="header-title">Url Shortener</h1>
-      <div class="header-action dropdown-container logged-out-view">
-        <label class="header-dropdown-label" for="log-in-radio" tabindex="0"
-          >Log in</label
-        >
-        or
-        <label class="header-dropdown-label" for="sign-up-radio" tabindex="0"
-          >sign up</label
-        >
-        <div class="header-dropdown">
-          <div class="header-dropdown-content">
-            <label
-              for="no-header-action-radio"
-              class="header-dropdown-label--close"
-              tab-index="0"
-              >x</label
-            >
-            <form onsubmit="event.preventDefault();">
-              <input
-                id="username-input"
-                class="header-dropdown-input text-field"
-                type="text"
-                placeholder="Username: "
-              />
-              <input
-                id="password-input"
-                class="header-dropdown-input text-field"
-                type="password"
-                placeholder="Password: "
-              />
-            </form>
-            <span
-              id="header-dropdown-validation"
-              class="header-dropdown-message--validation"
-            ></span>
-            <button onclick="logIn()" class="log-in-button button">
-              Log in
-            </button>
-            <button onclick="signUp()" class="sign-up-button button">
-              Sign up
-            </button>
-            <span class="placeholder-button">
-              <!-- SVG from https://github.com/n3r4zzurr0/svg-spinners/ licensed under MIT -->
-              <svg
-                class="placeholder-button-spinner"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <style>
-                  .spinner_Wezc {
-                    transform-origin: center;
-                    animation: spinner_Oiah 0.75s step-end infinite;
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Url Shortener</title>
+</head>
+
+<body>
+  <div class="page-area">
+    <!-- START OF STATE MANAGEMENT -->
+    <input id="log-in-radio" class="dropdown-controller" type="radio" name="header-dropdown" />
+    <input id="sign-up-radio" class="dropdown-controller" type="radio" name="header-dropdown" />
+    <input id="no-header-action-radio" class="dropdown-controller" type="radio" name="header-dropdown" checked />
+    <input type="checkbox" id="is-display-spinner" class="hidden" />
+    <input type="checkbox" id="is-logged-in" class="hidden" />
+    <input type="radio" name="current-page" class="hidden" id="is-show-create-page" checked />
+    <input type="radio" name="current-page" class="hidden" id="is-show-manage-page" />
+    <!-- END OF STATE MANAGEMENT -->
+    <!-- START OF HEADER -->
+    <h1 class="header-title">Url Shortener</h1>
+    <div class="header-action dropdown-container logged-out-view">
+      <label class="header-dropdown-label" for="log-in-radio" tabindex="0">Log in</label>
+      or
+      <label class="header-dropdown-label" for="sign-up-radio" tabindex="0">sign up</label>
+      <div class="header-dropdown">
+        <div class="header-dropdown-content">
+          <label for="no-header-action-radio" class="header-dropdown-label--close" tab-index="0">x</label>
+          <form onsubmit="event.preventDefault();">
+            <input id="username-input" class="header-dropdown-input text-field" type="text" placeholder="Username: " />
+            <input id="password-input" class="header-dropdown-input text-field" type="password"
+              placeholder="Password: " />
+          </form>
+          <span id="header-dropdown-validation" class="header-dropdown-message--validation"></span>
+          <button onclick="logIn()" class="log-in-button button">
+            Log in
+          </button>
+          <button onclick="signUp()" class="sign-up-button button">
+            Sign up
+          </button>
+          <span class="placeholder-button">
+            <!-- SVG from https://github.com/n3r4zzurr0/svg-spinners/ licensed under MIT -->
+            <svg class="placeholder-button-spinner" width="24" height="24" viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg">
+              <style>
+                .spinner_Wezc {
+                  transform-origin: center;
+                  animation: spinner_Oiah 0.75s step-end infinite;
+                }
+
+                @keyframes spinner_Oiah {
+                  8.3% {
+                    transform: rotate(30deg);
                   }
-                  @keyframes spinner_Oiah {
-                    8.3% {
-                      transform: rotate(30deg);
-                    }
-                    16.6% {
-                      transform: rotate(60deg);
-                    }
-                    25% {
-                      transform: rotate(90deg);
-                    }
-                    33.3% {
-                      transform: rotate(120deg);
-                    }
-                    41.6% {
-                      transform: rotate(150deg);
-                    }
-                    50% {
-                      transform: rotate(180deg);
-                    }
-                    58.3% {
-                      transform: rotate(210deg);
-                    }
-                    66.6% {
-                      transform: rotate(240deg);
-                    }
-                    75% {
-                      transform: rotate(270deg);
-                    }
-                    83.3% {
-                      transform: rotate(300deg);
-                    }
-                    91.6% {
-                      transform: rotate(330deg);
-                    }
-                    100% {
-                      transform: rotate(360deg);
-                    }
+
+                  16.6% {
+                    transform: rotate(60deg);
                   }
-                </style>
-                <g class="spinner_Wezc">
-                  <circle cx="12" cy="2.5" r="1.5" opacity=".14" />
-                  <circle cx="16.75" cy="3.77" r="1.5" opacity=".29" />
-                  <circle cx="20.23" cy="7.25" r="1.5" opacity=".43" />
-                  <circle cx="21.50" cy="12.00" r="1.5" opacity=".57" />
-                  <circle cx="20.23" cy="16.75" r="1.5" opacity=".71" />
-                  <circle cx="16.75" cy="20.23" r="1.5" opacity=".86" />
-                  <circle cx="12" cy="21.5" r="1.5" />
-                </g>
-              </svg>
-            </span>
-          </div>
+
+                  25% {
+                    transform: rotate(90deg);
+                  }
+
+                  33.3% {
+                    transform: rotate(120deg);
+                  }
+
+                  41.6% {
+                    transform: rotate(150deg);
+                  }
+
+                  50% {
+                    transform: rotate(180deg);
+                  }
+
+                  58.3% {
+                    transform: rotate(210deg);
+                  }
+
+                  66.6% {
+                    transform: rotate(240deg);
+                  }
+
+                  75% {
+                    transform: rotate(270deg);
+                  }
+
+                  83.3% {
+                    transform: rotate(300deg);
+                  }
+
+                  91.6% {
+                    transform: rotate(330deg);
+                  }
+
+                  100% {
+                    transform: rotate(360deg);
+                  }
+                }
+              </style>
+              <g class="spinner_Wezc">
+                <circle cx="12" cy="2.5" r="1.5" opacity=".14" />
+                <circle cx="16.75" cy="3.77" r="1.5" opacity=".29" />
+                <circle cx="20.23" cy="7.25" r="1.5" opacity=".43" />
+                <circle cx="21.50" cy="12.00" r="1.5" opacity=".57" />
+                <circle cx="20.23" cy="16.75" r="1.5" opacity=".71" />
+                <circle cx="16.75" cy="20.23" r="1.5" opacity=".86" />
+                <circle cx="12" cy="21.5" r="1.5" />
+              </g>
+            </svg>
+          </span>
         </div>
       </div>
-      <div
-        class="header-action create-page logged-in-view header-action--stacked"
-      >
-        <label
-          tabindex="0"
-          class="header-action-action"
-          for="is-show-manage-page"
-          >Manage links</label
-        >
-        <span class="header-action-action" onclick="logOut()">Log out</span>
-      </div>
-      <div class="header-action manage-page logged-in-view header-action--stacked">
-        <label
-          tabindex="0"
-          class="header-action-action"
-          for="is-show-create-page"
-          >Create link</label
-        >
-        <span class="header-action-action" onclick="logOut()">Log out</span>
-      </div>
-      <div class="header-border--border_bottom"></div>
-      <!-- END OF HEADER -->
-      <!-- START OF CREATE PAGE -->
-      <h2 class="subheader create-page">Create a new short url</h2>
-      <div class="content create-page">
-        <input
-          id="url-input"
-          class="content-url_field text-field"
-          type="text"
-          placeholder="URL: "
-        />
-        <button class="content-action--submit button" onclick="submit()">
-          Shorten
-        </button>
-        <div id="redirect-link-container" class="content-text hidden">
-          Your new link is:
-          <a id="redirect-link" class="content-link" target="_blank"></a>
-        </div>
-      </div>
-      <!-- END OF CREATE PAGE -->
-      <!-- START OF MANAGE PAGE -->
-      <h2 class="subheader manage-page">Manage your urls</h2>
-      <div class="content manage-page"></div>
-      <!-- END OF MANAGE PAGE -->
     </div>
-  </body>
-  <script>
-    const baseUrl = "http://localhost:4000/api";
-    const usernameInput = "username-input";
-    const passwordInput = "password-input";
-    addEventListener("load", onload);
-    function onload(e) {
-      const token = getAuthToken();
-      if (!token) {
-        return;
-      }
-      setIsLogin(true);
-      removeEventListener("load", onload);
+    <div class="header-action create-page logged-in-view header-action--stacked">
+      <label tabindex="0" class="header-action-action" for="is-show-manage-page">Manage links</label>
+      <span class="header-action-action" onclick="logOut()">Log out</span>
+    </div>
+    <div class="header-action manage-page logged-in-view header-action--stacked">
+      <label tabindex="0" class="header-action-action" for="is-show-create-page">Create link</label>
+      <span class="header-action-action" onclick="logOut()">Log out</span>
+    </div>
+    <div class="header-border--border_bottom"></div>
+    <!-- END OF HEADER -->
+    <!-- START OF CREATE PAGE -->
+    <h2 class="subheader create-page">Create a new short url</h2>
+    <div class="content create-page">
+      <input id="url-input" class="content-url_field text-field" type="text" placeholder="URL: " />
+      <button class="content-action--submit button" onclick="submit()">
+        Shorten
+      </button>
+      <div id="redirect-link-container" class="content-text hidden">
+        Your new link is:
+        <a id="redirect-link" class="content-link" target="_blank"></a>
+      </div>
+    </div>
+    <!-- END OF CREATE PAGE -->
+    <!-- START OF MANAGE PAGE -->
+    <h2 class="subheader manage-page">Manage your urls</h2>
+    <div class="content manage-page"></div>
+    <!-- END OF MANAGE PAGE -->
+  </div>
+</body>
+<script>
+  const baseUrl = "http://localhost:4000/api";
+  const usernameInput = "username-input";
+  const passwordInput = "password-input";
+  addEventListener("load", onload);
+  function onload(e) {
+    const token = getAuthToken();
+    if (!token) {
+      return;
     }
-    function signUp() {
-      setValidationMessage("");
-      data = validateUser();
-      isDisplaySpinner(true);
-      fetch(`${baseUrl}/auth/signup`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      })
-        .then((response) => {
-          if (response.ok) {
-            document.getElementById("log-in-radio").click();
-            clearLoginFields();
-          } else {
-            setValidationMessage("Signup failure!");
-          }
-        })
-        .catch((e) => {
+    setIsLogin(true);
+    removeEventListener("load", onload);
+  }
+  function signUp() {
+    setValidationMessage("");
+    data = validateUser();
+    isDisplaySpinner(true);
+    fetch(`${baseUrl}/auth/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    })
+      .then((response) => {
+        if (response.ok) {
+          document.getElementById("log-in-radio").click();
+          clearLoginFields();
+        } else {
           setValidationMessage("Signup failure!");
-        })
-        .finally(() => isDisplaySpinner(false));
-    }
-    function logIn() {
-      setValidationMessage("");
-      data = validateUser();
-      isDisplaySpinner(true);
-      fetch(`${baseUrl}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        }
       })
-        .then((response) => {
-          if (response.ok) {
-            clearLoginFields();
-            setIsLogin(true);
-            document.getElementById("no-header-action-radio").click();
-            response.json().then((json) => {
-              setAuthToken(json.token);
-            });
-          } else {
-            setValidationMessage("Login failure!");
-          }
-        })
-        .catch((e) => {
+      .catch((e) => {
+        setValidationMessage("Signup failure!");
+      })
+      .finally(() => isDisplaySpinner(false));
+  }
+  function logIn() {
+    setValidationMessage("");
+    data = validateUser();
+    isDisplaySpinner(true);
+    fetch(`${baseUrl}/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    })
+      .then((response) => {
+        if (response.ok) {
+          clearLoginFields();
+          setIsLogin(true);
+          document.getElementById("no-header-action-radio").click();
+          response.json().then((json) => {
+            setAuthToken(json.token);
+          });
+        } else {
           setValidationMessage("Login failure!");
-        })
-        .finally(() => isDisplaySpinner(false));
-    }
-    function setValidationMessage(message) {
-      const validationMessage = document.getElementById(
-        "header-dropdown-validation"
-      );
-      validationMessage.textContent = message;
-    }
-    function validateUser() {
-      const username = document.getElementById(usernameInput).value?.trim();
-      const password = document.getElementById(passwordInput).value?.trim();
-      if (username && password) {
-        return {
-          username,
-          password,
-        };
-      }
-    }
-    function submit() {
-      const urlInput = document.getElementById("url-input");
-      data = {
-        longUrl: urlInput.value,
+        }
+      })
+      .catch((e) => {
+        setValidationMessage("Login failure!");
+      })
+      .finally(() => isDisplaySpinner(false));
+  }
+  function setValidationMessage(message) {
+    const validationMessage = document.getElementById(
+      "header-dropdown-validation"
+    );
+    validationMessage.textContent = message;
+  }
+  function validateUser() {
+    const username = document.getElementById(usernameInput).value?.trim();
+    const password = document.getElementById(passwordInput).value?.trim();
+    if (username && password) {
+      return {
+        username,
+        password,
       };
-      fetch(`${baseUrl}/shorten`, {
+    }
+  }
+  function submit() {
+    const isLoggedIn = isUserLoggedIn();
+    const urlInput = document.getElementById("url-input");
+    data = {
+      longUrl: urlInput.value,
+    };
+    let request;
+    if (isLoggedIn) {
+      request = fetch(`${baseUrl}/user/urls`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${getAuthToken()}` },
+        body: JSON.stringify(data),
+      });
+    } else {
+      request = fetch(`${baseUrl}/shorten`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      }).then((value) => {
-        value.json().then((json) => {
-          console.log(json);
-          document
-            .getElementById("redirect-link-container")
-            .classList.add("visible", "visible");
-          const link = document.getElementById("redirect-link");
-          link.setAttribute("href", `${baseUrl}/r/${json.shortenedUrl}`);
-          link.textContent = `${baseUrl}/r/${json.shortenedUrl}`;
-        });
       });
     }
-    function clearLoginFields() {
-      document.getElementById(usernameInput).value = "";
-      document.getElementById(passwordInput).value = "";
+    request.then((value) => {
+      value.json().then((json) => {
+        console.log(json);
+        document
+          .getElementById("redirect-link-container")
+          .classList.add("visible", "visible");
+        const link = document.getElementById("redirect-link");
+        link.setAttribute("href", `${baseUrl}/r/${json.shortenedUrl}`);
+        link.textContent = `${baseUrl}/r/${json.shortenedUrl}`;
+      });
+    });
+  }
+  function clearLoginFields() {
+    document.getElementById(usernameInput).value = "";
+    document.getElementById(passwordInput).value = "";
+  }
+  function isDisplaySpinner(isDisplay) {
+    document.getElementById("is-display-spinner").checked = isDisplay;
+  }
+  function setIsLogin(isLogin) {
+    document.getElementById("is-logged-in").checked = isLogin;
+  }
+  function getAuthToken() {
+    const expiration = localStorage.getItem("AuthorizationExpiration");
+    if (isExpired(expiration)) {
+      return null;
     }
-    function isDisplaySpinner(isDisplay) {
-      document.getElementById("is-display-spinner").checked = isDisplay;
-    }
-    function setIsLogin(isLogin) {
-      document.getElementById("is-logged-in").checked = isLogin;
-    }
-    function getAuthToken() {
-      const expiration = localStorage.getItem("AuthorizationExpiration");
-      if (isExpired(expiration)) {
-        return null;
-      }
-      return localStorage.getItem("Authorization");
-    }
-    function setAuthToken(token) {
-      localStorage.setItem("Authorization", token);
-      localStorage.setItem("AuthorizationExpiration", Date.now() + 3600000);
-    }
-    function isExpired(expiration) {
-      return Date.now() >= expiration;
-    }
-    function logOut() {
-      clearAuthToken();
-      setIsLogin(false);
-      document.getElementById('is-show-create-page').click()
-    }
-    function clearAuthToken() {
-      localStorage.removeItem("Authorization");
-      localStorage.removeItem("AuthorizationExpiration");
-    }
-  </script>
-  <style>
-    :root {
-      --text-primary: #1f1f1f;
-      --text-secondary: #f2f2f2;
-      --text-white: #ffffff;
-      --background-color: #f2f2f2;
-      --primary-color: #112a8f;
-      --primary-light: #385be6;
-      --primary-dark: #0c1e64;
-      --link-color: #252be9;
-      --accent-color: #60758b;
-      --error-color: rgb(225, 0, 0);
-      --divider-primary: #708090;
-      --divider-light: #d3dae1;
-      --divider-dark: #434d57;
-      --box-shadow: rgba(0, 0, 0, 0.4);
-      --box-shadow-inset: #e4e4e4;
-      --s: 1px;
-      --s-1: 0.25rem;
-      --s-2: 0.375rem;
-      --s-3: 0.5rem;
-      --s-4: 0.625rem;
-      --s-5: 0.75rem;
-      --s-6: 1rem;
-      --s-7: 1.25rem;
-      --s-8: 1.5rem;
-      --s-9: 2rem;
-    }
-    body {
-      background-color: var(--background-color);
-      color: var(--text-primary);
-      font-family: Arial, sans-serif;
-      width: 100%;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: start;
-      margin: 0;
-    }
-    .page-area {
-      display: grid;
-      grid-template-areas:
-        "title . action"
-        "border-bottom border-bottom border-bottom"
-        " . subheader ."
-        "content content content"
-        " . . . ";
-      grid-template-columns: 1fr 1fr 1fr;
-      grid-template-rows: max-content var(--s-9) min-content min-content;
-      justify-content: start;
-      align-items: center;
-      height: 100%;
-      width: 70%;
-      border-left: var(--s) solid var(--divider-light);
-      border-right: var(--s) solid var(--divider-light);
-      box-sizing: border-box;
-    }
-    .header-title {
-      grid-area: title;
-      text-align: center;
-    }
-    .logged-out-view {
-      display: none;
-    }
-    #is-logged-in:not(:checked) ~ .logged-out-view.header-action {
-      display: block;
-    }
-    .header-action {
-      grid-area: action;
-      justify-self: end;
-      margin: 0 var(--s-8) 0 auto;
-    }
-    .logged-in-view.header-action {
-      color: var(--link-color);
-    }
-    .logged-in-view.header-action:hover {
-      cursor: pointer;
-    }
-    .header-action-action:hover {
-      cursor: pointer;
-    }
-    #is-logged-in:checked
-      ~ #is-show-create-page:checked
-      ~ .create-page.logged-in-view.header-action,
-    #is-logged-in:checked
-      ~ #is-show-manage-page:checked
-      ~ .manage-page.logged-in-view.header-action {
-      display: flex;
-      flex-direction: column;
-    }
-    .header-action--stacked {
-      align-items: end;
-      gap: var(--s-2);
-    }
-    .header-dropdown {
-      opacity: 0.3;
-      background-color: var(--background-color);
-      position: absolute;
-      padding: var(--s-4);
-      /* I stole this straight from the internet: https://stackoverflow.com/questions/3508605/how-can-i-transition-height-0-to-height-auto-using-css */
-      clip: rect(auto, auto, 0, auto);
-      transition-property: clip, opacity;
-      transition-duration: 0.3s;
-      transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    .header-dropdown-content {
-      display: flex;
-      align-items: center;
-      flex-direction: column;
-      box-shadow: 3px 3px 6px var(--box-shadow);
-      gap: var(--s-3);
-      padding: var(--s-6);
-    }
-    .header-dropdown-message--validation {
-      color: var(--error-color);
-    }
-    .header-dropdown-label {
-      color: var(--link-color);
-      cursor: pointer;
-      font-weight: 600;
-    }
-    .header-dropdown-label--close {
-      height: var(--s-6);
-      width: var(--s-6);
-      cursor: pointer;
-      font-weight: 600;
-      padding: 0;
-      border-radius: 100px;
-      text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      align-self: flex-start;
-    }
-    .header-dropdown-label--close:hover {
-      background-color: var(--box-shadow-inset);
-    }
-    #sign-up-radio:checked ~ .dropdown-container > .header-dropdown,
-    #log-in-radio:checked ~ .dropdown-container > .header-dropdown {
-      opacity: 1;
-      clip: rect(auto, auto, 20rem, auto);
-    }
-    .log-in-button,
-    .sign-up-button,
-    .placeholder-button {
-      display: none;
-    }
-    #log-in-radio:checked
-      ~ #is-display-spinner:not(:checked)
-      ~ .dropdown-container
-      > .header-dropdown
-      .log-in-button,
-    #sign-up-radio:checked
-      ~ #is-display-spinner:not(:checked)
-      ~ .dropdown-container
-      > .header-dropdown
-      .sign-up-button {
-      display: block;
-    }
-    #no-header-action-radio:checked
-      ~ .dropdown-container
-      > .header-dropdown
-      .placeholder-button,
-    #is-display-spinner:checked
-      ~ .dropdown-container
-      > .header-dropdown
-      .placeholder-button {
-      display: block;
-    }
-    .placeholder-button-spinner {
-      transform: scale(calc(2 / 3));
-    }
-    .header-border--border_bottom {
-      grid-area: border-bottom;
-      border-top: var(--s) solid var(--divider-light);
-      align-self: start;
-    }
-    .create-page,
-    .manage-page {
-      display: none;
-    }
-    #is-show-create-page:checked ~ .create-page.content,
-    #is-show-manage-page:checked ~ .manage-page.content {
-      display: flex;
-    }
-    .subheader {
-      display: none;
-    }
-    #is-show-create-page:checked ~ .create-page.subheader,
-    #is-show-manage-page:checked ~ .manage-page.subheader {
-      display: block;
-    }
-    .logged-in-view {
-      display: none;
-    }
-    .subheader {
-      grid-area: subheader;
-      text-align: center;
-    }
-    .content {
-      grid-area: content;
-      flex-direction: column;
-      justify-content: start;
-      align-items: center;
-    }
-    .content-url_field {
-      margin: 0 auto var(--s-4);
-      padding: var(--s-4);
-    }
-    .content-action--submit {
-      margin: 0 auto;
-    }
-    .text-field {
-      padding: var(--s-4);
-      display: block;
-      border-radius: var(--s-3);
-      border: var(--s) solid var(--divider-primary);
-      background-color: var(--background-color);
-      box-shadow: inset 0 0 var(--s-1) var(--box-shadow-inset);
-    }
-    .button {
-      padding: var(--s-5) var(--s-6);
-      border: none;
-      border-radius: var(--s-3);
-      background-color: var(--primary-color);
-      color: var(--text-secondary);
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: var(--primary-dark);
-    }
-    .hidden {
-      display: none;
-    }
-    .visible {
-      display: block;
-    }
-    .dropdown-container {
-      position: relative;
-    }
-    .dropdown-controller {
-      display: none;
-    }
-  </style>
+    return localStorage.getItem("Authorization");
+  }
+  function setAuthToken(token) {
+    localStorage.setItem("Authorization", token);
+    localStorage.setItem("AuthorizationExpiration", Date.now() + 3600000);
+  }
+  function isExpired(expiration) {
+    return Date.now() >= expiration;
+  }
+  function logOut() {
+    clearAuthToken();
+    setIsLogin(false);
+    document.getElementById('is-show-create-page').click()
+  }
+  function clearAuthToken() {
+    localStorage.removeItem("Authorization");
+    localStorage.removeItem("AuthorizationExpiration");
+  }
+  function isUserLoggedIn() {
+    return document.getElementById("is-logged-in").checked;
+  }
+</script>
+<style>
+  :root {
+    --text-primary: #1f1f1f;
+    --text-secondary: #f2f2f2;
+    --text-white: #ffffff;
+    --background-color: #f2f2f2;
+    --primary-color: #112a8f;
+    --primary-light: #385be6;
+    --primary-dark: #0c1e64;
+    --link-color: #252be9;
+    --accent-color: #60758b;
+    --error-color: rgb(225, 0, 0);
+    --divider-primary: #708090;
+    --divider-light: #d3dae1;
+    --divider-dark: #434d57;
+    --box-shadow: rgba(0, 0, 0, 0.4);
+    --box-shadow-inset: #e4e4e4;
+    --s: 1px;
+    --s-1: 0.25rem;
+    --s-2: 0.375rem;
+    --s-3: 0.5rem;
+    --s-4: 0.625rem;
+    --s-5: 0.75rem;
+    --s-6: 1rem;
+    --s-7: 1.25rem;
+    --s-8: 1.5rem;
+    --s-9: 2rem;
+  }
+
+  body {
+    background-color: var(--background-color);
+    color: var(--text-primary);
+    font-family: Arial, sans-serif;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: start;
+    margin: 0;
+  }
+
+  .page-area {
+    display: grid;
+    grid-template-areas:
+      "title . action"
+      "border-bottom border-bottom border-bottom"
+      " . subheader ."
+      "content content content"
+      " . . . ";
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: max-content var(--s-9) min-content min-content;
+    justify-content: start;
+    align-items: center;
+    height: 100%;
+    width: 70%;
+    border-left: var(--s) solid var(--divider-light);
+    border-right: var(--s) solid var(--divider-light);
+    box-sizing: border-box;
+  }
+
+  .header-title {
+    grid-area: title;
+    text-align: center;
+  }
+
+  .logged-out-view {
+    display: none;
+  }
+
+  #is-logged-in:not(:checked)~.logged-out-view.header-action {
+    display: block;
+  }
+
+  .header-action {
+    grid-area: action;
+    justify-self: end;
+    margin: 0 var(--s-8) 0 auto;
+  }
+
+  .logged-in-view.header-action {
+    color: var(--link-color);
+  }
+
+  .logged-in-view.header-action:hover {
+    cursor: pointer;
+  }
+
+  .header-action-action:hover {
+    cursor: pointer;
+  }
+
+  #is-logged-in:checked~#is-show-create-page:checked~.create-page.logged-in-view.header-action,
+  #is-logged-in:checked~#is-show-manage-page:checked~.manage-page.logged-in-view.header-action {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header-action--stacked {
+    align-items: end;
+    gap: var(--s-2);
+  }
+
+  .header-dropdown {
+    opacity: 0.3;
+    background-color: var(--background-color);
+    position: absolute;
+    padding: var(--s-4);
+    /* I stole this straight from the internet: https://stackoverflow.com/questions/3508605/how-can-i-transition-height-0-to-height-auto-using-css */
+    clip: rect(auto, auto, 0, auto);
+    transition-property: clip, opacity;
+    transition-duration: 0.3s;
+    transition-timing-function: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .header-dropdown-content {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    box-shadow: 3px 3px 6px var(--box-shadow);
+    gap: var(--s-3);
+    padding: var(--s-6);
+  }
+
+  .header-dropdown-message--validation {
+    color: var(--error-color);
+  }
+
+  .header-dropdown-label {
+    color: var(--link-color);
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  .header-dropdown-label--close {
+    height: var(--s-6);
+    width: var(--s-6);
+    cursor: pointer;
+    font-weight: 600;
+    padding: 0;
+    border-radius: 100px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    align-self: flex-start;
+  }
+
+  .header-dropdown-label--close:hover {
+    background-color: var(--box-shadow-inset);
+  }
+
+  #sign-up-radio:checked~.dropdown-container>.header-dropdown,
+  #log-in-radio:checked~.dropdown-container>.header-dropdown {
+    opacity: 1;
+    clip: rect(auto, auto, 20rem, auto);
+  }
+
+  .log-in-button,
+  .sign-up-button,
+  .placeholder-button {
+    display: none;
+  }
+
+  #log-in-radio:checked~#is-display-spinner:not(:checked)~.dropdown-container>.header-dropdown .log-in-button,
+  #sign-up-radio:checked~#is-display-spinner:not(:checked)~.dropdown-container>.header-dropdown .sign-up-button {
+    display: block;
+  }
+
+  #no-header-action-radio:checked~.dropdown-container>.header-dropdown .placeholder-button,
+  #is-display-spinner:checked~.dropdown-container>.header-dropdown .placeholder-button {
+    display: block;
+  }
+
+  .placeholder-button-spinner {
+    transform: scale(calc(2 / 3));
+  }
+
+  .header-border--border_bottom {
+    grid-area: border-bottom;
+    border-top: var(--s) solid var(--divider-light);
+    align-self: start;
+  }
+
+  .create-page,
+  .manage-page {
+    display: none;
+  }
+
+  #is-show-create-page:checked~.create-page.content,
+  #is-show-manage-page:checked~.manage-page.content {
+    display: flex;
+  }
+
+  .subheader {
+    display: none;
+  }
+
+  #is-show-create-page:checked~.create-page.subheader,
+  #is-show-manage-page:checked~.manage-page.subheader {
+    display: block;
+  }
+
+  .logged-in-view {
+    display: none;
+  }
+
+  .subheader {
+    grid-area: subheader;
+    text-align: center;
+  }
+
+  .content {
+    grid-area: content;
+    flex-direction: column;
+    justify-content: start;
+    align-items: center;
+  }
+
+  .content-url_field {
+    margin: 0 auto var(--s-4);
+    padding: var(--s-4);
+  }
+
+  .content-action--submit {
+    margin: 0 auto;
+  }
+
+  .text-field {
+    padding: var(--s-4);
+    display: block;
+    border-radius: var(--s-3);
+    border: var(--s) solid var(--divider-primary);
+    background-color: var(--background-color);
+    box-shadow: inset 0 0 var(--s-1) var(--box-shadow-inset);
+  }
+
+  .button {
+    padding: var(--s-5) var(--s-6);
+    border: none;
+    border-radius: var(--s-3);
+    background-color: var(--primary-color);
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+
+  button:hover {
+    background-color: var(--primary-dark);
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  .visible {
+    display: block;
+  }
+
+  .dropdown-container {
+    position: relative;
+  }
+
+  .dropdown-controller {
+    display: none;
+  }
+</style>
+
 </html>
