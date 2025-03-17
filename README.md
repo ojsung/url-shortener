@@ -103,7 +103,7 @@ curl --location --request DELETE 'http://localhost:4000/api/user/urls' \
 }'
 ```
 ### Discussion
-There are many features that would be nice to have, but are being cut for sake of time. Implementing these would be ideal, but my current life responsibilities prevent me from investing as much energy as I would like into this.
+I thought it would be a fun challenge to try creating this app in Dart. It was very fun, but it means that, for lack of time, some features were not added. Implementing these would be ideal, but my current life responsibilities prevent me from investing as much energy as I would like into this.
 - There is no framework used for the front-end. I will skip this to save time again (and space, not having to install Node which would be a dependency for almost any js framework)
 - I am not going to host these images in docker.io or any other image hosting service. Building them should be pretty quick, so purchasing space to host these seems unnecessary. There may be some relics remaining in the docker-compose.yml of initial plans to host them, but unless it is requested, the images will not be pushed up
 - I will not be using an ORM. It would be good practice for the sake of security and readability, but it would also add time. I will try to format the SQL in the most readable format possible. The `api` repository is using `mysql_client` as its MySQL client
@@ -111,5 +111,5 @@ There are many features that would be nice to have, but are being cut for sake o
 ### Unresolved issues
 - Currently, none of the authenticated routes will work from the web app. It's a cors issue. But they can instead be tested using cURL or Postman
   - All unauthenticated routes do work though
-- The environment variables set in the tests does not seem to be passed into the testing environment itself. Regrettably, this means all the tests I wrote will not run. I hope the writing itself is enough, and you can forgive my lack of underestanding of this testing framework
+- It is my first time trying out Dart's testing framework. I have always used Flutter's. However, the environment variables set in the tests do not seem to be passed into the testing environment itself. Regrettably, this means all the tests I wrote will not run. I hope they look nice regardless, and you can forgive my lack of underestanding of this testing framework
 
