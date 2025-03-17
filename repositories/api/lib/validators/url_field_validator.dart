@@ -7,7 +7,7 @@ class UrlFieldValidator extends ValidatorLibrary implements CustomMiddleware {
       final PartialUrlDto urlDto = PartialUrlDto.fromString(await request.readAsString());
       final String? url = urlDto.longUrl;
       if (url == null || url.isEmpty) {
-        return Response.badRequest(body: json.encode({'message': 'Url must not be empty'}));
+        throw IncompleteDataException('Url must not be empty');
       }
       final requestWithUrl = request.change(context: {'longUrl': url});
 

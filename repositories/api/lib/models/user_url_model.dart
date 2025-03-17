@@ -2,39 +2,29 @@ import 'dart:convert' show json;
 
 import 'package:url_shortener_server/exceptions/exceptions.dart';
 import 'package:url_shortener_server/models/user_partial.dart' show UserPartial;
+import 'package:url_shortener_server/models/user_url_partial.dart';
 import 'package:url_shortener_server/services/database_service.dart' show DatabaseService;
 import 'package:url_shortener_server/shared/interfaces/model.dart';
+import 'package:url_shortener_server/shared/interfaces/partial.dart';
 import 'package:url_shortener_server/shared/query_result.dart';
 import 'package:url_shortener_server/shared/where_clause.dart';
 
-class User extends Model<User, UserPartial> implements UserPartial {
+class UserUrl extends Model<UserUrl, UserUrlPartial> {
   static const String tableName = 'users';
-  @override
   final int id;
-  @override
-  final String username;
-  @override
-  final String password;
-  final DateTime createdAt;
-  final DateTime modifiedAt;
-  final DateTime? deletedAt;
+  final int userId;
+  final int urlId;
 
-  User({
+  UserUrl({
     required this.id,
-    required this.username,
-    required this.password,
-    required this.createdAt,
-    required this.modifiedAt,
-    this.deletedAt,
+    required this.userId,
+    required this.urlId,
   });
 
-  User.fromJson(Map<String, dynamic> json)
+  UserUrl.fromJson(Map<String, dynamic> json)
     : id = int.parse(json['id']),
-      username = json['username'],
-      password = json['password'],
-      createdAt = DateTime.parse(json['created_at']),
-      modifiedAt = DateTime.parse(json['modified_at']),
-      deletedAt = json['deleted_at'] != null ? DateTime.parse(json['deleted_at']) : null;
+      userId = int.parse(json['user_id']),
+      urlId = int.parse(json['url_id']);
 
   static Future<QueryResult> create(UserPartial model) async {
     final username = model.username;

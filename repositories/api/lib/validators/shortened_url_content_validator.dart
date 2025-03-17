@@ -6,7 +6,7 @@ class ShortenedUrlContentValidator extends ValidatorLibrary implements CustomMid
     return (Request request) async {
       final String shortenedUrl = request.requestedUri.pathSegments.elementAt(1);
       if (!_isValidShortenedUrl(shortenedUrl)) {
-        return Response.notFound(withMessage('Url does not match any records'));
+        throw NotFoundException('Url does not match any records');
       }
       return handler(request);
     };

@@ -22,7 +22,7 @@ class AuthRoutes extends RouteRegistry {
 
     router.mount(
       namespace,
-      Pipeline().addMiddlewares(middlewares).addMiddlewares(validators).addHandler(authRouter.call),
+      Pipeline().addMiddlewares(exceptionHandlers).addMiddlewares(middlewares).addMiddlewares(validators).addHandler(authRouter.call),
     );
     return router;
   }

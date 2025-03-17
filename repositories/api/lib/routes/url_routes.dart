@@ -19,7 +19,7 @@ class UrlRoutes extends RouteRegistry {
 
     return router..mount(
       namespace,
-      Pipeline().addMiddlewares(middlewares).addMiddlewares(validators).addHandler(postRouter.call),
+      Pipeline().addMiddlewares(exceptionHandlers).addMiddlewares(middlewares).addMiddlewares(validators).addHandler(postRouter.call),
     );
   }
 }
