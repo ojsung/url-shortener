@@ -10,7 +10,7 @@ class AuthenticationMiddleware extends MiddlewareLibrary implements CustomMiddle
     return (Request request) async {
       final authHeader = request.headers['Authorization'];
       if (authHeader == null || !authHeader.startsWith('Bearer ')) {
-        return Response.forbidden('Missing or invalid Authorization header');
+        throw InvalidAuthorizationHeaderException();
       }
 
       final base64Token = authHeader.substring(7);
@@ -18,12 +18,12 @@ class AuthenticationMiddleware extends MiddlewareLibrary implements CustomMiddle
       final int? userId = jsonToken.userId;
       final String? authToken = jsonToken.token;
       if (userId == null || authToken == null) {
-        return Response.forbidden('Missing auth header');
+        throw BrokenAuthorizationHeaderException('Authorization header is missing authorization data');
       }
 
       final isValid = await authService.verifyAuthToken(authToken, userId);
       if (!isValid) {
-        return Response.forbidden('Invalid token');
+        throw InvalidAuthorizationHeaderException('The token is invalid');
       }
       request.change(context: {"userId": userId});
 

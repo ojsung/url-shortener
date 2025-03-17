@@ -8,7 +8,7 @@ class UserValidator extends ValidatorLibrary implements CustomMiddleware {
       final String? username = user.username;
       final String? password = user.password;
       if (username == null || username.isEmpty || password == null || password.isEmpty) {
-        return Response.badRequest(body: json.encode({'message': 'Username and password are required'}));
+        throw IncompleteDataException('Username and password are required');
       }
       final requestWithUser = request.change(context: {'user': UserDto(username: username, password: password)});
 

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:url_shortener_server/models/user_model.dart';
 import 'package:url_shortener_server/models/user_partial.dart' show UserPartial;
 import 'package:url_shortener_server/services/auth_service.dart' show AuthService;
@@ -12,13 +14,15 @@ class AuthServiceImpl implements AuthService {
   const AuthServiceImpl(this.tokenManager, this.hashKeys, this.createKey);
 
   @override
-  String generateAuthToken(String username) {
+  String generateAuthToken(String username, int userId) {
     final currentMinute = DateTime.now().minute;
     final key = hashKeys.getKey(currentMinute);
 
     final MultiPartString saltedPassword = tokenManager.encryptString(username, key: key);
     saltedPassword.insert(0, currentMinute.toString());
-    return saltedPassword.toString();
+    final String jsonString = json.encode({'token': saltedPassword.toString(), 'userId': userId});
+    final String authToken = utf8.fuse(base64).encode(jsonString);
+    return authToken;
   }
 
   @override

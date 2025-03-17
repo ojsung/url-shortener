@@ -25,6 +25,6 @@ class UserRoutes extends RouteRegistry {
           ..delete('/urls', (request) => Response.ok('Deleted'))
           ..get('/urls/<id>', (request, url) => Response.found('Found url: $url'));
 
-    return router..mount(namespace, Pipeline().addMiddlewares(middlewares).addMiddlewares(validators).addHandler(router.call));
+    return router..mount(namespace, Pipeline().addMiddlewares(exceptionHandlers).addMiddlewares(middlewares).addMiddlewares(validators).addHandler(router.call));
   }
 }

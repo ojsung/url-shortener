@@ -6,7 +6,7 @@ class ShortenedUrlValidator extends ValidatorLibrary implements CustomMiddleware
     return (Request request) async {
       final String? shortenedUrl = request.requestedUri.pathSegments.elementAtOrNull(1);
       if (shortenedUrl == null || !_isValidShortenedUrl(shortenedUrl)) {
-        return Response.notFound(withMessage('Unable to find requested url'));
+        throw NotFoundException();
       }
       return handler(request);
     };
