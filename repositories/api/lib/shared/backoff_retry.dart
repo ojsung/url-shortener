@@ -32,7 +32,7 @@ class BackoffRetry<Return extends dynamic> {
     this.cooldownCoefficient = 1,
     this.strategy = Strategy.exponential,
   });
-
+  /// Call a function with a retry strategy and exponential backoff
   Future<Return> call(FutureOr<Return> Function() fn, [String? id]) async {
     try {
       if (retries == 0) {

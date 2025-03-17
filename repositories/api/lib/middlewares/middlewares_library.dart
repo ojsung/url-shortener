@@ -15,6 +15,7 @@ part 'url_exception_middleware.dart';
 part 'set_request_string_middleware.dart';
 
 sealed class MiddlewareLibrary {
+  /// Retrieve a middleware from the library by its type
   static CustomMiddleware get<Middleware extends MiddlewareLibrary>() {
     switch (Middleware) {
       case const (AuthenticationMiddleware):

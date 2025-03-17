@@ -11,7 +11,7 @@ class TokenManager {
   final int hashRounds;
   static const String _characters = characters;
 
-  /// It doesn't create a truly random string. But it is random enough for a project like this.
+  /// Generate a somewhat random string of a given length
   static String generateRandomString(int length) {
     final random = Random();
     return String.fromCharCodes(
@@ -22,6 +22,7 @@ class TokenManager {
     );
   }
 
+  /// Encrypt a string. If a key or salt are provided, use those. Otherwise, generate them.
   MultiPartString encryptString(
     String subject, {
     String key = '',
@@ -40,6 +41,7 @@ class TokenManager {
     return hashedSubject.split(':').last;
   }
 
+  /// Hash a string with a key a given number of times. Uses SHA-256.
   String hashWithKey(String input, String key, [int? rounds]) {
     int hashRounds = rounds ?? this.hashRounds;
     if (hashRounds < 1) {
@@ -58,6 +60,7 @@ class TokenManager {
     return digest.toString();
   }
 
+  /// Compare a hashed string to a plain text string by hashing the plain text string
   bool isTokenEqualToString({
     required String hashedSubject,
     required String salt,

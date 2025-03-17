@@ -1,5 +1,6 @@
 part of 'middlewares_library.dart';
 
+/// Read the request body and set it as a context variable
 class SetRequestStringMiddleware extends MiddlewareLibrary
     implements CustomMiddleware {
   @override

@@ -125,6 +125,7 @@ class UserUrl extends Model<UserUrl, UserUrlPartial> {
     return WhereClause(where: where, values: values);
   }
 
+  /// Get all URLs associated with a user that are not deleted
   static Future<List<Url>> getUrlsByUserId(int userId) async {
     DatabaseService db = Model.databaseService;
     QueryResult results = await db.execute(

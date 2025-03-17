@@ -143,6 +143,7 @@ class Url implements Model<Url, UrlPartial>, UrlPartial {
     return query.toModels();
   }
 
+  /// Find the latest inserted Url in the database
   static Future<int> findLatest() async {
     QueryResult result = await Model.databaseService.execute('''
     SELECT `id` FROM `urls`

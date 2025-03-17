@@ -31,6 +31,7 @@ class AuthController extends Controller {
     throw IncompleteDataException('Could not parse username and password from request');
   }
 
+  /// Log the user in
   Future<Response> loginPostHandler(Request request) async {
     final Object? requestUser = request.context['user'];
     if (requestUser is UserDto) {
