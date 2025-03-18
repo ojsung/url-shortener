@@ -14,7 +14,6 @@ class UrlFieldValidator extends ValidatorLibrary implements CustomMiddleware {
       if (url == null || url.isEmpty) {
         throw IncompleteDataException('Url must not be empty');
       }
-      print(requestJson);
       final requestWithUrl = request.change(
         context: {'longUrl': url},
       );

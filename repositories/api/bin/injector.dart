@@ -30,6 +30,7 @@ import 'package:url_shortener_server/shared/env.dart';
 import 'package:url_shortener_server/validators/validators_library.dart'
     show
         IdFieldValidator,
+        UrlIdParamValidator,
         ShortenedUrlContentValidator,
         ShortenedUrlValidator,
         UrlContentValidator,
@@ -80,30 +81,31 @@ void setupInjector() {
       ),
     )
     // Register middlewares
+    ..registerLazySingleton<AuthExceptionMiddleware>(
+      () => AuthExceptionMiddleware(),
+    )
     ..registerLazySingleton<AuthenticationMiddleware>(
       () => AuthenticationMiddleware(getIt.get<AuthService>()),
     )
     ..registerLazySingleton<CorsMiddleware>(() => CorsMiddleware())
-    ..registerLazySingleton<UrlExceptionMiddleware>(
-      () => UrlExceptionMiddleware(),
-    )
-    ..registerLazySingleton<AuthExceptionMiddleware>(
-      () => AuthExceptionMiddleware(),
-    )
     ..registerLazySingleton<SetRequestStringMiddleware>(
       () => SetRequestStringMiddleware(),
     )
-    // Register validators
-    ..registerLazySingleton<UserValidator>(() => UserValidator())
-    ..registerLazySingleton<UrlFieldValidator>(() => UrlFieldValidator())
-    ..registerLazySingleton<UrlContentValidator>(() => UrlContentValidator())
-    ..registerLazySingleton<ShortenedUrlValidator>(
-      () => ShortenedUrlValidator(),
+    ..registerLazySingleton<UrlExceptionMiddleware>(
+      () => UrlExceptionMiddleware(),
     )
+    // Register validators
+    ..registerLazySingleton<IdFieldValidator>(() => IdFieldValidator())
+    ..registerLazySingleton<UrlIdParamValidator>(() => UrlIdParamValidator())
     ..registerLazySingleton<ShortenedUrlContentValidator>(
       () => ShortenedUrlContentValidator(),
     )
-    ..registerLazySingleton<IdFieldValidator>(() => IdFieldValidator())
+    ..registerLazySingleton<ShortenedUrlValidator>(
+      () => ShortenedUrlValidator(),
+    )
+    ..registerLazySingleton<UrlContentValidator>(() => UrlContentValidator())
+    ..registerLazySingleton<UrlFieldValidator>(() => UrlFieldValidator())
+    ..registerLazySingleton<UserValidator>(() => UserValidator())
     // Register controllers
     ..registerLazySingleton<AuthController>(
       () => AuthController(getIt.get<AuthService>()),

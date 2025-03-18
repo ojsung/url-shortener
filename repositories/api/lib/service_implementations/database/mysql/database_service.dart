@@ -7,7 +7,7 @@ import 'package:url_shortener_server/shared/interfaces/migration.dart';
 import 'package:url_shortener_server/shared/query_result.dart' show QueryResult, QueryRow;
 
 class DatabaseServiceImpl implements DatabaseService {
-  final BackoffRetry<IResultSet> _backoffExecutor = BackoffRetry();
+  final BackoffRetry<IResultSet> _backoffExecutor = BackoffRetry(maxRetries: 4);
   final MySQLConnectionPool _connectionPool;
   @override
   final List<Migration> migrations;

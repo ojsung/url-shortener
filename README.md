@@ -12,11 +12,15 @@
 ### View the app
 - Use your favorite browser to navigate to http://localhost:4002
   - If your port 4002 is taken, you can change the port in the docker-compose.yml file
-- In the web app, all unauthenticated routes are testable. Because of CORS policy, authenticated routes can only be hit through cURL (covered in the Routes section). In the web app, you can
+- In the web app, all routes testable via cURL are available. In the web app, you can
   - Create a url that is unassociated with a user
   - Create a user
   - Log in as a user
-    - Any actions requiring a logged in user will fail though, because of CORS policy
+  - After logging in, "Manage links" will be added to the header. In this page you can:
+    - Create a url that is associated with a user
+    - Click "Refresh" to retrieve user urls
+    - Edit user urls
+    - Delete user urls
 ### Resources
 - W3 Schools for most of the regular expressions
 - This was my first time writing a Dockerfile or docker-compose.yml. I used the [Getting Started](https://docs.docker.com/compose/gettingstarted/) from docker as a reference.
@@ -109,7 +113,5 @@ I thought it would be a fun challenge to try creating this app in Dart. It was v
 - I will not be using an ORM. It would be good practice for the sake of security and readability, but it would also add time. I will try to format the SQL in the most readable format possible. The `api` repository is using `mysql_client` as its MySQL client
 - I have separated out the top-level nginx proxy from the nginx proxy that handles the routes for the web service. Trying to find a nice way for them all to live together would be wonderful, but again, I do not have time. And it isn't bad, per se, to have them living separately. Just a bit unnecessary and wasteful, considering how small the web service is.
 ### Unresolved issues
-- Currently, none of the authenticated routes will work from the web app. It's a cors issue. But they can instead be tested using cURL or Postman
-  - All unauthenticated routes do work though
 - It is my first time trying out Dart's testing framework. I have always used Flutter's. However, the environment variables set in the tests do not seem to be passed into the testing environment itself. Regrettably, this means all the tests I wrote will not run. I hope they look nice regardless, and you can forgive my lack of underestanding of this testing framework
 

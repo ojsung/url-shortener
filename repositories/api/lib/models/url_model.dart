@@ -34,7 +34,10 @@ class Url implements Model<Url, UrlPartial>, UrlPartial {
       shortenedUrl = json['shortened_url'],
       createdAt = DateTime.parse(json['created_at']),
       modifiedAt = DateTime.parse(json['modified_at']),
-      deletedAt = json['deleted_at'] != null ? DateTime.parse(json['deleted_at']) : null;
+      deletedAt =
+          json['deleted_at'] != null
+              ? DateTime.parse(json['deleted_at'])
+              : null;
 
   @override
   Url copyWithJson(Map<String, dynamic> changes) {
@@ -81,7 +84,9 @@ class Url implements Model<Url, UrlPartial>, UrlPartial {
     );
     final BigInt lastInsertId = query.lastInsertId;
     if (lastInsertId == BigInt.zero) {
-      throw UnknownInsertException("Failed to insert. No lastInsertId returned");
+      throw UnknownInsertException(
+        "Failed to insert. No lastInsertId returned",
+      );
     }
     return (await read(UrlPartial(id: lastInsertId.toInt()))).first;
   }
@@ -101,7 +106,7 @@ class Url implements Model<Url, UrlPartial>, UrlPartial {
     final QueryResult results;
     final int? modelId = model.id;
     if (modelId == null) {
-      throw MissingIdException('ID must not be null for deletion');
+      throw InvalidIdException('ID must not be null for deletion');
     }
     if (hard) {
       results = await Model.databaseService.execute('''
@@ -125,12 +130,17 @@ class Url implements Model<Url, UrlPartial>, UrlPartial {
   static Future<List<Url>> update(UrlPartial model) async {
     final id = model.id;
     if (id == null) {
-      throw MissingIdException('ID is required to update a Url');
+      throw InvalidIdException('ID is required to update a Url');
     }
     if (model.url == null && model.shortenedUrl == null) {
-      throw IncompleteDataException('At least one field is required to update a Url');
+      throw IncompleteDataException(
+        'At least one field is required to update a Url',
+      );
     }
-    UrlPartial partial = UrlPartial(url: model.url, shortenedUrl: model.shortenedUrl);
+    UrlPartial partial = UrlPartial(
+      url: model.url,
+      shortenedUrl: model.shortenedUrl,
+    );
     final WhereClause whereClause = _buildWhereClause(partial);
     QueryResult query = await Model.databaseService.execute(
       '''

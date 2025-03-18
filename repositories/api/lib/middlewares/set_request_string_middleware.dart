@@ -6,7 +6,7 @@ class SetRequestStringMiddleware extends MiddlewareLibrary
   @override
   FutureOr<Response> Function(Request) middleware(Handler handler) {
     return (Request request) async {
-      if (request.method == 'GET') {
+      if (['GET','DELETE'].contains(request.method)) {
         return handler(request);
       }
       final String requestString;

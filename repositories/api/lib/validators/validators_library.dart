@@ -16,6 +16,7 @@ part 'shortened_url_validator.dart';
 part 'shortened_url_content_validator.dart';
 part 'url_content_validator.dart';
 part 'id_field_validator.dart';
+part 'url_id_param_validator.dart';
 
 sealed class ValidatorLibrary {
   static CustomMiddleware get<Validator extends ValidatorLibrary>() {
@@ -32,6 +33,8 @@ sealed class ValidatorLibrary {
         return getIt<UrlContentValidator>();
       case const (IdFieldValidator):
         return getIt<IdFieldValidator>();
+      case const (UrlIdParamValidator):
+        return getIt<UrlIdParamValidator>();
       default:
         throw Exception('Validator not found');
     }

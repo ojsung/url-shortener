@@ -127,7 +127,7 @@
     <h2 class="subheader create-page">Create a new short url</h2>
     <div class="content create-page">
       <input id="url-input" class="content-url_field text-field" type="text" placeholder="URL: " />
-      <button class="content-action--submit button" onclick="submit()">
+      <button class="content-action--submit button" onclick="createNewUrl()">
         Shorten
       </button>
       <div id="redirect-link-container" class="content-text hidden">
@@ -138,14 +138,35 @@
     <!-- END OF CREATE PAGE -->
     <!-- START OF MANAGE PAGE -->
     <h2 class="subheader manage-page">Manage your urls</h2>
-    <div class="content manage-page"></div>
+    <div class="content manage-page">
+      <button class="content-action--refresh button" onclick="getUserUrls()">
+        Refresh
+      </button>
+      <table id="url-list-target">
+        <thead>
+          <tr>
+            <th>Url</th>
+            <th>Short Url</th>
+            <th>Edit</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Rows will be dynamically added here -->
+        </tbody>
+      </table>
+    </div>
     <!-- END OF MANAGE PAGE -->
   </div>
 </body>
 <script>
+  // Constants
   const baseUrl = "http://localhost:4000/api";
   const usernameInput = "username-input";
   const passwordInput = "password-input";
+</script>
+<script>
+  // Event listeners
   addEventListener("load", onload);
   function onload(e) {
     const token = getAuthToken();
@@ -155,6 +176,9 @@
     setIsLogin(true);
     removeEventListener("load", onload);
   }
+</script>
+<script>
+  // Request handlers
   function signUp() {
     setValidationMessage("");
     data = validateUser();
@@ -194,6 +218,7 @@
           response.json().then((json) => {
             setAuthToken(json.token);
           });
+          getUserUrls();
         } else {
           setValidationMessage("Login failure!");
         }
@@ -202,12 +227,6 @@
         setValidationMessage("Login failure!");
       })
       .finally(() => isDisplaySpinner(false));
-  }
-  function setValidationMessage(message) {
-    const validationMessage = document.getElementById(
-      "header-dropdown-validation"
-    );
-    validationMessage.textContent = message;
   }
   function validateUser() {
     const username = document.getElementById(usernameInput).value?.trim();
@@ -219,7 +238,20 @@
       };
     }
   }
-  function submit() {
+  function getUserUrls() {
+    fetch(`${baseUrl}/user/urls`, {
+      headers: { "Authorization": `Bearer ${getAuthToken()}` },
+    })
+      .then((response) => {
+        response.json().then((json) => {
+          setUrls(json.urls);
+        });
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+  }
+  function createNewUrl() {
     const isLoggedIn = isUserLoggedIn();
     const urlInput = document.getElementById("url-input");
     data = {
@@ -248,8 +280,42 @@
         const link = document.getElementById("redirect-link");
         link.setAttribute("href", `${baseUrl}/r/${json.shortenedUrl}`);
         link.textContent = `${baseUrl}/r/${json.shortenedUrl}`;
+        if (isLoggedIn) {
+          createTableRow(json.url, json.shortenedUrl, json.id);
+        }
       });
     });
+  }
+  function deleteUrl(id) {
+    fetch(`${baseUrl}/user/urls/${id}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${getAuthToken()}` },
+    }).then((response) => {
+      if (response.ok) {
+        removeUrl(id);
+      }
+    });
+  }
+  function editUrl(changes) {
+    fetch(`${baseUrl}/user/urls/${changes.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${getAuthToken()}` },
+      body: JSON.stringify(changes),
+    }).then((response) => {
+      if (response.ok) {
+        updateUrl(changes);
+      }
+    });
+  }
+</script>
+<script>
+  let urlList = [];
+  // State management scripts
+  function setValidationMessage(message) {
+    const validationMessage = document.getElementById(
+      "header-dropdown-validation"
+    );
+    validationMessage.textContent = message;
   }
   function clearLoginFields() {
     document.getElementById(usernameInput).value = "";
@@ -286,6 +352,96 @@
   }
   function isUserLoggedIn() {
     return document.getElementById("is-logged-in").checked;
+  }
+  function setUrls(urls) {
+    urlList = urls;
+    const tableRows = getTableRows();
+    for (const row of tableRows) {
+      row.remove();
+    }
+    for (const url of urls) {
+      createTableRow(url.url, url.shortenedUrl, url.id);
+    }
+  }
+  function updateUrl(url) {
+    const index = urlList.findIndex((u) => u.id === url.id);
+    urlList[index] = url;
+    const row = getTableRowByUrlId(url.id);
+    row.children[0].textContent = url.longUrl;
+    row.children[1].textContent = url.shortUrl;
+  }
+  function removeUrl(urlId) {
+    urlList = urlList.filter((u) => u.id !== urlId);
+    const row = getTableRowByUrlId(urlId);
+    row?.remove();
+  }
+</script>
+<script>
+  // Component scripts
+  function createTableRow(url, shortUrl, id) {
+    const tbody = document.querySelector("#url-list-target tbody");
+    const row = document.createElement("tr");
+    row.setAttribute("data-url-id", id);
+
+    const urlCell = document.createElement("td");
+    urlCell.textContent = url;
+    row.appendChild(urlCell);
+
+    const shortUrlCell = document.createElement("td");
+    shortUrlCell.textContent = shortUrl;
+    row.appendChild(shortUrlCell);
+
+    const editCell = document.createElement("td");
+    const editButton = document.createElement("button");
+    editButton.innerHTML = "✏️";
+    editButton.onclick = () => editTableRow(url, id);
+    editCell.appendChild(editButton);
+    row.appendChild(editCell);
+
+    const deleteCell = document.createElement("td");
+    const deleteButton = document.createElement("button");
+    deleteButton.innerHTML = "🗑️";
+    deleteButton.onclick = () => deleteUrl(id);
+    deleteCell.appendChild(deleteButton);
+    row.appendChild(deleteCell);
+
+    tbody.appendChild(row);
+  }
+  function editTableRow(url, id) {
+    const row = getTableRowByUrlId(id);
+    const urlCell = row.children[0];
+    const editCell = row.children[2];
+
+    urlCell.innerHTML = `<input type="text" value="${url}" id="edit-url-${id}" />`;
+
+    const saveButton = document.createElement("button");
+    saveButton.textContent = "Save";
+    saveButton.onclick = () => saveTableRow(id);
+    editCell.innerHTML = "";
+    editCell.appendChild(saveButton);
+  }
+
+  function saveTableRow(id) {
+    const url = document.getElementById(`edit-url-${id}`).value;
+    const changes = { id, longUrl: url };
+    editUrl(changes);
+    const row = getTableRowByUrlId(id);
+    const urlCell = row.children[0];
+    const editCell = row.children[2];
+
+    urlCell.textContent = url;
+
+    const editButton = document.createElement("button");
+    editButton.innerHTML = "✏️";
+    editButton.onclick = () => editTableRow(url, id);
+    editCell.innerHTML = "";
+    editCell.appendChild(editButton);
+  }
+  function getTableRowByUrlId(urlId) {
+    return document.querySelector(`#url-list-target tbody tr[data-url-id="${urlId}"]`);
+  }
+  function getTableRows() {
+    return document.querySelectorAll("#url-list-target tbody tr");
   }
 </script>
 <style>

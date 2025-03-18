@@ -50,9 +50,7 @@ class UserController extends Controller {
     }
     final List<Url> urlList = await UserUrl.getUrlsByUserId(userId);
     return Response.ok(
-      withMessage('Found', {
-        'urls': urlList.map((e) => e.toJson()).toList(),
-      }),
+      withMessage('Found', {'urls': urlList.map((e) => e.toJson()).toList()}),
     );
   }
 
@@ -65,7 +63,7 @@ class UserController extends Controller {
       throw BrokenAuthorizationHeaderException();
     }
     if (urlId is! int) {
-      throw MissingIdException('Url id is required to update a record');
+      throw InvalidIdException('Url id is required to update a record');
     }
     if (url is! String) {
       throw IncompleteDataException('Unable to parse url');
@@ -82,7 +80,7 @@ class UserController extends Controller {
       throw BrokenAuthorizationHeaderException();
     }
     if (urlId is! int) {
-      throw MissingIdException('Url id is required to delete a record');
+      throw InvalidIdException('Url id is required to delete a record');
     }
     await Url.delete(UrlPartial(id: urlId));
     return Response.ok(withMessage('Deleted', {'urlId': urlId}));

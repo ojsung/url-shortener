@@ -1,6 +1,7 @@
 part of 'middlewares_library.dart';
 
-class AuthExceptionMiddleware extends MiddlewareLibrary implements CustomMiddleware {
+class AuthExceptionMiddleware extends MiddlewareLibrary
+    implements CustomMiddleware {
   @override
   FutureOr<Response> Function(Request) middleware(Handler handler) {
     return (Request request) async {
@@ -8,7 +9,7 @@ class AuthExceptionMiddleware extends MiddlewareLibrary implements CustomMiddlew
         return await handler(request);
       } on DuplicateUserException catch (e) {
         return Response(409, body: withError(e));
-      } on MissingIdException catch (e) {
+      } on InvalidIdException catch (e) {
         return Response.badRequest(body: withError(e));
       } on IncompleteDataException catch (e) {
         return Response.badRequest(body: withError(e));
@@ -18,14 +19,20 @@ class AuthExceptionMiddleware extends MiddlewareLibrary implements CustomMiddlew
         return Response.unauthorized(withError(e));
       } on UnknownInsertException {
         return Response.internalServerError(
-          body: withErrorMessage('An error occurred while creating user. Please try again later'),
+          body: withErrorMessage(
+            'An error occurred while creating user. Please try again later',
+          ),
         );
       } on UnknownDatabaseException {
         return Response.internalServerError(
-          body: withErrorMessage('An error occurred while creating user. Please try again later'),
+          body: withErrorMessage(
+            'An error occurred while creating user. Please try again later',
+          ),
         );
       } catch (e) {
-        return Response.internalServerError(body: withErrorMessage('An unexpected error occurred'));
+        return Response.internalServerError(
+          body: withErrorMessage('An unexpected error occurred'),
+        );
       }
     };
   }

@@ -7,16 +7,17 @@ class CorsMiddleware extends MiddlewareLibrary implements CustomMiddleware {
   FutureOr<Response> Function(Request) middleware(Handler handler) {
     return (Request request) async {
       if (request.method == 'OPTIONS') {
-        return Response.ok('', headers: _corsHeaders);
+        return Response.ok('', headers: corsHeaders);
       }
       final Response response = await handler(request);
-      return response.change(headers: _corsHeaders);
+      return response.change(headers: corsHeaders);
     };
   }
 
-  final Map<String, String> _corsHeaders = {
+  final Map<String, String> corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token',
+    'Access-Control-Allow-Headers': 'Origin, Content-Type, X-Auth-Token, Authorization',
+    'Access-Control-Allow-Credentials': 'true',
   };
 }

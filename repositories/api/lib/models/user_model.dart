@@ -2,7 +2,8 @@ import 'dart:convert' show json;
 
 import 'package:url_shortener_server/exceptions/exceptions.dart';
 import 'package:url_shortener_server/models/user_partial.dart' show UserPartial;
-import 'package:url_shortener_server/services/database_service.dart' show DatabaseService;
+import 'package:url_shortener_server/services/database_service.dart'
+    show DatabaseService;
 import 'package:url_shortener_server/shared/interfaces/model.dart';
 import 'package:url_shortener_server/shared/query_result.dart';
 import 'package:url_shortener_server/shared/where_clause.dart';
@@ -34,7 +35,10 @@ class User extends Model<User, UserPartial> implements UserPartial {
       password = json['password'],
       createdAt = DateTime.parse(json['created_at']),
       modifiedAt = DateTime.parse(json['modified_at']),
-      deletedAt = json['deleted_at'] != null ? DateTime.parse(json['deleted_at']) : null;
+      deletedAt =
+          json['deleted_at'] != null
+              ? DateTime.parse(json['deleted_at'])
+              : null;
 
   static Future<QueryResult> create(UserPartial model) async {
     final username = model.username;
@@ -78,12 +82,17 @@ class User extends Model<User, UserPartial> implements UserPartial {
   static Future<QueryResult> update(UserPartial model) async {
     final id = model.id;
     if (id == null) {
-      throw MissingIdException('ID is required to update a User');
+      throw InvalidIdException('ID is required to update a User');
     }
     if (model.username == null && model.password == null) {
-      throw IncompleteDataException('At least one field is required to update a User');
+      throw IncompleteDataException(
+        'At least one field is required to update a User',
+      );
     }
-    UserPartial partial = UserPartial(username: model.username, password: model.password);
+    UserPartial partial = UserPartial(
+      username: model.username,
+      password: model.password,
+    );
     final WhereClause whereClause = _buildWhereClause(partial);
     DatabaseService db = Model.databaseService;
     QueryResult results = await db.execute(
