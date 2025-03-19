@@ -38,7 +38,7 @@ curl --location 'http://localhost:4000/api/shorten' \
 ```
 - Get and be redirected to the saved url
 ```shell
-curl --location --request GET 'http://localhost:4000/api/r/i' \
+curl --location --request GET 'http://localhost:4000/api/r/{shortUrl}' \
 --header 'Content-Type: application/json' \
 --data '{
     "longUrl": "https://google.com"
@@ -88,23 +88,20 @@ curl --location 'http://localhost:4000/api/user/urls' \
 - Update user url
   - You will need the url id as well, which is returned to you when you create the url initially, or when you GET your urls
 ```shell
-curl --location --request PUT 'http://localhost:4000/api/user/urls' \
+curl --location --request PUT 'http://localhost:4000/api/user/urls/{urlId}' \
 --header 'Authorization: Bearer {token}' \
 --header 'Content-Type: application/json' \
 --data '{
-    "urlId": {id},
     "longUrl": "https://googley.com"
 }'
 ```
 - Delete user url
   - Soft-delete a url. It will remain in the database, but with a `deleted_at` timestamp
 ```shell
-curl --location --request DELETE 'http://localhost:4000/api/user/urls' \
+curl --location --request DELETE 'http://localhost:4000/api/user/urls/{urlId}' \
 --header 'Authorization: Bearer {token}' \
 --header 'Content-Type: application/json' \
---data '{
-    "urlId": {urlId}
-}'
+
 ```
 ### Discussion
 I thought it would be a fun challenge to try creating this app in Dart. It was very fun, but it means that, for lack of time, some features were not added. Implementing these would be ideal, but my current life responsibilities prevent me from investing as much energy as I would like into this.
